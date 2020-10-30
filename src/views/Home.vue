@@ -1,18 +1,17 @@
 <template>
-  <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
-  </div>
+    <Choropleth id="gtd-map"></Choropleth>
 </template>
 
 <script>
 // @ is an alias to /src
-import HelloWorld from '@/components/HelloWorld.vue';
+import Graph from "@/components/Graph";
+import Choropleth from "@/components/Choropleth";
 
 export default {
   name: 'Home',
   components: {
-    HelloWorld,
+    Choropleth,
+    Graph,
   },
 };
 </script>
