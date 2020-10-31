@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import CircleProperties from "@/types/CircleProperties";
+import CircleProperties from '@/types/CircleProperties';
 
 export const NodeProperties = {
   type: String,
@@ -14,23 +14,22 @@ export const NodeProperties = {
   layout: CircleProperties,
   children: Array,
   detail: Object,
-}
+};
 
 export default {
-  name: "Node",
+  name: 'Node',
   props: NodeProperties,
   computed: {
-    displayValue: function () {
+    displayValue() {
       if (this.display) {
-        return this.display.length > 10 ?
-          `${this.display.substr(0, 7)}...` :
-          this.display
-      } else {
-        return ''
+        return this.display.length > 10
+          ? `${this.display.substr(0, 7)}...`
+          : this.display;
       }
+      return '';
     },
   },
-}
+};
 </script>
 
 <style scoped>

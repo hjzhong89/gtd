@@ -8,11 +8,12 @@
 </template>
 
 <script>
-import Node from "@/components/Node";
+import Node from '@/components/Node';
+
 export default {
-  name: "Graph",
-  components: {Node},
-  data: function() {
+  name: 'Graph',
+  components: { Node },
+  data() {
     return {
       nodes: [
         {
@@ -21,7 +22,7 @@ export default {
             cx: 10,
             cy: 10,
             r: 10,
-          }
+          },
         },
         {
           type: 'COUNTRY',
@@ -29,12 +30,12 @@ export default {
             cx: 20,
             cy: 20,
             r: 10,
-          }
-        }
-      ]
-    }
-  }
-}
+          },
+        },
+      ],
+    };
+  },
+};
 </script>
 
 <style scoped>

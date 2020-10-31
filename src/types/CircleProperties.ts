@@ -1,5 +1,5 @@
 export default interface CircleProperties {
-  cx: number,
-  cy: number,
-  r: number
+  cx: number;
+  cy: number;
+  r: number;
 }

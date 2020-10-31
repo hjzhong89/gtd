@@ -1,5 +1,5 @@
-import CircleProperties from "@/types/CircleProperties";
+import CircleProperties from '@/types/CircleProperties';
 
 export default {
   CircleProps: CircleProperties,
-}
+};

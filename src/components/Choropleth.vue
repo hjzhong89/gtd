@@ -8,8 +8,7 @@
 
 <script>
 import * as d3 from 'd3';
-
-const worldCountries = require('../assets/world_countries.json');
+import * as worldCountries from '@/api/GeoJsonProvider';
 
 export const ChoroplethProperties = {
   id: String,
@@ -34,46 +33,50 @@ export const ChoroplethProperties = {
       right: 50,
     }),
   },
+  transforms: {
+    type: Array,
+    default: () => [],
+  },
 };
 
 export default {
-  name: "ChoroplethComponent",
+  name: 'ChoroplethComponent',
   props: ChoroplethProperties,
   computed: {
-    topology: function() {
-      if (Array.isArray(this.countries) && this.countries.length > 0) {
-        return this.countries.map((i) => worldCountries.features[i])
-      } else {
-        return worldCountries.features;
-      }
-    }
+    topology() {
+      return worldCountries.getFeatures({ countries: this.countries });
+    },
   },
   methods: {
+    async draw() {
+      const features = {
+        type: 'FeatureCollection',
+        features: this.topology,
+      };
+      const path = d3.geoPath()
+        .projection(
+          d3.geoMercator()
+            .fitExtent([
+              [this.margin.left, this.margin.top],
+              [this.margin.left + this.width, this.margin.top + this.height],
+            ], features),
+        );
+      const canvas = d3.select(`#${this.id} svg`);
+      canvas.selectAll('path')
+        .data(this.topology)
+        .enter()
+        .append('path')
+        .attr('id', (d) => d.id)
+        .attr('d', path)
+        .attr('class', (d) => 'path country');
 
+      this.$emit('created', canvas);
+    },
   },
-  mounted: function () {
-    const features = {
-      type: 'FeatureCollection',
-      features: this.topology
-    }
-    const path = d3.geoPath()
-      .projection(
-        d3.geoMercator()
-        .fitExtent([
-          [this.margin.left, this.margin.top],
-          [this.margin.left + this.width, this.margin.top + this.height],
-        ], features)
-      )
-    d3.select(`#${this.id} svg`)
-      .selectAll('path')
-      .data(this.topology)
-      .enter()
-      .append('path')
-      .attr('d', path)
-      .attr('class', d => 'path country')
-
-  }
-}
+  mounted() {
+    this.draw();
+  },
+};
 </script>
 
 <style>
@@ -84,6 +87,6 @@ export default {
 
 .path.country {
   stroke: black;
-  fill: cadetblue;
+  fill: gray;
 }
 </style>

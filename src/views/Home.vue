@@ -1,11 +1,16 @@
 <template>
-    <Choropleth id="gtd-map"></Choropleth>
+  <Choropleth id="gtd-map"
+              @created="drawIncidents"
+  ></Choropleth>
 </template>
 
 <script>
 // @ is an alias to /src
-import Graph from "@/components/Graph";
-import Choropleth from "@/components/Choropleth";
+import Graph from '@/components/Graph';
+import Choropleth from '@/components/Choropleth';
+import {LocalGTDClient as gtd} from '@/api/GTDClient';
+import {worldCountries, countryList} from '@/api/GeoJsonProvider';
+import * as d3 from 'd3';
 
 export default {
   name: 'Home',
@@ -13,5 +18,57 @@ export default {
     Choropleth,
     Graph,
   },
+  methods: {
+    async drawIncidents(canvas) {
+      const incidents = await gtd.getIncidents();
+      const countByCountry = incidents.reduce((countries, incident) => {
+        if (Object.keys(countryList).includes(incident.country_txt)) {
+          const ci = countryList[incident.country_txt];
+          const i = worldCountries.features[ci].id
+          if (countries[i]) {
+            countries[i] += 1;
+          } else {
+            countries[i] = 1;
+          }
+        }
+        return countries;
+      }, {});
+
+      const domain = Object.values(countByCountry);
+      const range = [
+        'nkilled-low',
+        'nkilled-mid',
+        'nkilled-high',
+        'nkilled-xhigh',
+      ]
+      const scale = d3.scaleQuantile()
+        .domain(domain)
+        .range(range);
+
+      Object.keys(countByCountry).forEach(id => {
+        const country = canvas.select(`#${id}`);
+        range.forEach(nclass => country.classed(nclass, false));
+        const nclass = scale(countByCountry[id]);
+        country.classed(nclass, true);
+      });
+  1
+      return canvas;
+    },
+  },
 };
 </script>
+<style>
+.nkilled-low {
+  fill: #FFA987 !important;
+}
+.nkilled-mid {
+  fill: #B47A66 !important;
+}
+.nkilled-high {
+  fill: #694C45 !important;
+}
+.nkilled-xhigh {
+  fill: #1E1E24 !important;
+}
+
+</style>
