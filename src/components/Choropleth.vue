@@ -1,6 +1,8 @@
 <template>
   <div :id="id" class="choropleth container">
-    <svg :height="height" :width="width" class="choropleth canvas"></svg>
+    <svg :height="height + margin.top + margin.bottom"
+         :width="width + margin.left + margin.right"
+         class="choropleth canvas"></svg>
   </div>
 </template>
 
@@ -11,6 +13,10 @@ const worldCountries = require('../assets/world_countries.json');
 
 export const ChoroplethProperties = {
   id: String,
+  countries: {
+    type: Array,
+    default: () => [],
+  },
   height: {
     type: Number,
     default: 800,
@@ -20,44 +26,50 @@ export const ChoroplethProperties = {
     default: 1200,
   },
   margin: {
-    left: {
-      type: Number,
-      default: 50
-    },
-    right: {
-      type: Number,
-      default: 50
-    },
-    top: {
-      type: Number,
-      default: 50
-    },
-    bottom: {
-      type: Number,
-      default: 50
-    },
-  },
-  topology: {
     type: Object,
-    default: () => [worldCountries.features[0], worldCountries.features[1], worldCountries.features[2]],
+    default: () => ({
+      top: 50,
+      bottom: 50,
+      left: 50,
+      right: 50,
+    }),
   },
-  projection: {
-    type: Function,
-    default: () => d3.geoMercator
-  }
 };
-
 
 export default {
   name: "ChoroplethComponent",
   props: ChoroplethProperties,
+  computed: {
+    topology: function() {
+      if (Array.isArray(this.countries) && this.countries.length > 0) {
+        return this.countries.map((i) => worldCountries.features[i])
+      } else {
+        return worldCountries.features;
+      }
+    }
+  },
+  methods: {
+
+  },
   mounted: function () {
+    const features = {
+      type: 'FeatureCollection',
+      features: this.topology
+    }
+    const path = d3.geoPath()
+      .projection(
+        d3.geoMercator()
+        .fitExtent([
+          [this.margin.left, this.margin.top],
+          [this.margin.left + this.width, this.margin.top + this.height],
+        ], features)
+      )
     d3.select(`#${this.id} svg`)
       .selectAll('path')
       .data(this.topology)
       .enter()
       .append('path')
-      .attr('d', d3.geoPath(d3.geoMercator()))
+      .attr('d', path)
       .attr('class', d => 'path country')
 
   }
@@ -72,6 +84,6 @@ export default {
 
 .path.country {
   stroke: black;
-  fill: red;
+  fill: cadetblue;
 }
 </style>
