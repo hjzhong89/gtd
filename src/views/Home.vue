@@ -72,7 +72,9 @@ export default {
     },
     filterCountryOnClick(canvas) {
       function onClick(event) {
-        const index = countryList[event.target.id];
+        const id = event.target.id;
+        const name = canvas.select(`#${id}`).attr('name');
+        const index = countryList[name];
         this.countries = [index];
         this.count += 1
       }

@@ -44,7 +44,7 @@ export default {
   props: ChoroplethProperties,
   computed: {
     topology() {
-      return worldCountries.getFeatures({ countries: this.countries });
+      return worldCountries.getFeatures({countries: this.countries});
     },
   },
   methods: {
@@ -70,8 +70,9 @@ export default {
         .enter()
         .append('path')
         .attr('id', (d) => d.id)
+        .attr('name', (d) => d.properties.name)
         .attr('d', path)
-        .attr('class', (d) => 'path country');
+        .attr('class', 'path country');
 
       this.$emit('created', canvas);
     },
