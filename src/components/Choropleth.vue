@@ -48,6 +48,9 @@ export default {
     },
   },
   methods: {
+    clear() {
+      d3.select(`#${this.id} svg`).selectAll('*').remove();
+    },
     async draw() {
       const features = {
         type: 'FeatureCollection',
@@ -74,6 +77,11 @@ export default {
     },
   },
   mounted() {
+    console.log('Mounted', this.countries);
+    this.draw();
+  },
+  updated() {
+    this.clear();
     this.draw();
   },
 };

@@ -1,12 +1,18 @@
 <template>
-  <Choropleth id="gtd-map"
-              @created="drawIncidents"
-  ></Choropleth>
+  <div>
+    <button
+      v-if="countries.length > 0"
+      @click="resetCountries"
+    >Back</button>
+    <Choropleth :id="`gtd-map-${count}`"
+                :countries="countries"
+                @created="handleCreated"
+    ></Choropleth>
+  </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import Graph from '@/components/Graph';
 import Choropleth from '@/components/Choropleth';
 import {LocalGTDClient as gtd} from '@/api/GTDClient';
 import {worldCountries, countryList} from '@/api/GeoJsonProvider';
@@ -16,9 +22,18 @@ export default {
   name: 'Home',
   components: {
     Choropleth,
-    Graph,
+  },
+  data() {
+    return {
+      countries: [],
+      count: 0,
+    }
   },
   methods: {
+    async handleCreated(canvas) {
+      await this.drawIncidents(canvas);
+      this.filterCountryOnClick(canvas);
+    },
     async drawIncidents(canvas) {
       const incidents = await gtd.getIncidents();
       const countByCountry = incidents.reduce((countries, incident) => {
@@ -49,10 +64,24 @@ export default {
         const country = canvas.select(`#${id}`);
         range.forEach(nclass => country.classed(nclass, false));
         const nclass = scale(countByCountry[id]);
+        country.classed('gtd-country', true);
         country.classed(nclass, true);
       });
-  1
+
       return canvas;
+    },
+    filterCountryOnClick(canvas) {
+      function onClick(event) {
+        const index = countryList[event.target.id];
+        this.countries = [index];
+        this.count += 1
+      }
+      canvas.selectAll('.gtd-country')
+      .on('click', onClick.bind(this));
+    },
+    resetCountries() {
+      this.countries = [];
+      this.count += 1;
     },
   },
 };
