@@ -1,6 +1,6 @@
 import { FeatureCollection, Feature } from 'geojson';
 
-export const countryList = require('../assets/country_list');
+export const countryList = require('../assets/gtd_country_list');
 export const worldCountries: FeatureCollection = require('../assets/world_countries');
 
 export type GetFeaturesOptions = {

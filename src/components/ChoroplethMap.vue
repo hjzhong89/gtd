@@ -2,20 +2,17 @@
   <div :id="id" class="choropleth container">
     <svg :height="height + margin.top + margin.bottom"
          :width="width + margin.left + margin.right"
-         class="choropleth canvas"></svg>
+         class="choropleth canvas">
+      <slot/>
+    </svg>
   </div>
 </template>
 
 <script>
 import * as d3 from 'd3';
-import * as worldCountries from '@/api/GeoJsonProvider';
 
-export const ChoroplethProperties = {
+export const ChoroplethMapProperties = {
   id: String,
-  countries: {
-    type: Array,
-    default: () => [],
-  },
   height: {
     type: Number,
     default: 800,
@@ -33,29 +30,34 @@ export const ChoroplethProperties = {
       right: 50,
     }),
   },
-  transforms: {
+  topology: {
     type: Array,
     default: () => [],
-  },
+  }
 };
 
+export const ChoroplethMapEvents = {
+  CLEAR: 'clear',
+  CREATED: 'created',
+}
 export default {
-  name: 'ChoroplethComponent',
-  props: ChoroplethProperties,
+  name: 'ChoroplethMap',
+  props: ChoroplethMapProperties,
   computed: {
-    topology() {
-      return worldCountries.getFeatures({countries: this.countries});
-    },
+    canvas() {
+      return d3.select(`#${this.id} svg`);
+    }
   },
   methods: {
     clear() {
-      d3.select(`#${this.id} svg`).selectAll('*').remove();
+      this.canvas.selectAll('*').remove();
+      this.$emit(ChoroplethMapEvents.CLEAR, this.canvas);
     },
-    async draw() {
+    draw() {
       const features = {
         type: 'FeatureCollection',
         features: this.topology,
-      };
+      }
       const path = d3.geoPath()
         .projection(
           d3.geoMercator()
@@ -64,38 +66,39 @@ export default {
               [this.margin.left + this.width, this.margin.top + this.height],
             ], features),
         );
-      const canvas = d3.select(`#${this.id} svg`);
-      canvas.selectAll('path')
+      this.canvas.selectAll('path')
         .data(this.topology)
         .enter()
         .append('path')
         .attr('id', (d) => d.id)
         .attr('name', (d) => d.properties.name)
         .attr('d', path)
-        .attr('class', 'path country');
+        .attr('fill', 'gray')
+        .attr('class', 'path geometry')
+        .on('click', (e) => {
+          this.$emit('clicked', e)
+        })
 
-      this.$emit('created', canvas);
-    },
+      const geometries = this.canvas.selectAll('.path.geometry');
+
+      this.$emit(ChoroplethMapEvents.CREATED, {
+        canvas: this.canvas,
+        geometries,
+      });
+    }
   },
   mounted() {
-    console.log('Mounted', this.countries);
     this.draw();
   },
   updated() {
     this.clear();
     this.draw();
-  },
-};
+  }
+}
 </script>
-
 <style>
 .choropleth.canvas {
   background-color: #2c3e50;
   overflow: visible;
-}
-
-.path.country {
-  stroke: black;
-  fill: gray;
 }
 </style>

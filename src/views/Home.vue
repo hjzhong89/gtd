@@ -1,105 +1,54 @@
 <template>
   <div>
-    <button
-      v-if="countries.length > 0"
-      @click="resetCountries"
-    >Back</button>
-    <Choropleth :id="`gtd-map-${count}`"
-                :countries="countries"
-                @created="handleCreated"
-    ></Choropleth>
+    <ChoroplethMap :id="`gtd-choropleth`"
+                   :topology="topology"
+                   @created="handleCreated"
+                   @clicked="handleClicked"
+    >
+      <GTDMapper ref="gtdmapper"></GTDMapper>
+    </ChoroplethMap>
+    <button @click="resetCountries">Back</button>
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import Choropleth from '@/components/Choropleth';
 import {LocalGTDClient as gtd} from '@/api/GTDClient';
 import {worldCountries, countryList} from '@/api/GeoJsonProvider';
 import * as d3 from 'd3';
+import ChoroplethMap from "@/components/ChoroplethMap";
+import GTDMapper from "@/components/GTDMapper";
 
 export default {
   name: 'Home',
   components: {
-    Choropleth,
+    GTDMapper,
+    ChoroplethMap,
   },
   data() {
     return {
-      countries: [],
+      topology: worldCountries.features,
       count: 0,
+      initialized: false,
     }
   },
   methods: {
-    async handleCreated(canvas) {
-      await this.drawIncidents(canvas);
-      this.filterCountryOnClick(canvas);
+    async handleCreated({canvas}) {
+      this.$refs.gtdmapper.colorize(canvas);
     },
-    async drawIncidents(canvas) {
-      const incidents = await gtd.getIncidents();
-      const countByCountry = incidents.reduce((countries, incident) => {
-        if (Object.keys(countryList).includes(incident.country_txt)) {
-          const ci = countryList[incident.country_txt];
-          const i = worldCountries.features[ci].id
-          if (countries[i]) {
-            countries[i] += 1;
-          } else {
-            countries[i] = 1;
-          }
-        }
-        return countries;
-      }, {});
-
-      const domain = Object.values(countByCountry);
-      const range = [
-        'nkilled-low',
-        'nkilled-mid',
-        'nkilled-high',
-        'nkilled-xhigh',
-      ]
-      const scale = d3.scaleQuantile()
-        .domain(domain)
-        .range(range);
-
-      Object.keys(countByCountry).forEach(id => {
-        const country = canvas.select(`#${id}`);
-        range.forEach(nclass => country.classed(nclass, false));
-        const nclass = scale(countByCountry[id]);
-        country.classed('gtd-country', true);
-        country.classed(nclass, true);
-      });
-
-      return canvas;
-    },
-    filterCountryOnClick(canvas) {
-      function onClick(event) {
-        const id = event.target.id;
-        const name = canvas.select(`#${id}`).attr('name');
-        const index = countryList[name];
-        this.countries = [index];
-        this.count += 1
-      }
-      canvas.selectAll('.gtd-country')
-      .on('click', onClick.bind(this));
+    handleClicked(e) {
+      const id = e.target.id;
+      const country = d3.select(`#${id}`)
+        .attr('name')
+      const index = countryList[country].index
+      this.topology = [worldCountries.features[index]]
     },
     resetCountries() {
-      this.countries = [];
-      this.count += 1;
+      this.topology = worldCountries.features;
     },
   },
 };
 </script>
 <style>
-.nkilled-low {
-  fill: #FFA987 !important;
-}
-.nkilled-mid {
-  fill: #B47A66 !important;
-}
-.nkilled-high {
-  fill: #694C45 !important;
-}
-.nkilled-xhigh {
-  fill: #1E1E24 !important;
-}
 
 </style>
