@@ -1,5 +1,4 @@
-const gtd: Incident[] = require('../assets/gtd_short');
-
+const uri = 'http://localhost:3000/api';
 export type Incident = {
   eventid: number;
   iyear: number;
@@ -18,15 +17,51 @@ export type Incident = {
 }
 
 export type GetIncidentsOptions = {
-  countryList?: string[];
+  lastId?: string,
+  countries?: string[];
+  count?: number,
 }
 
 export default interface GTDClient {
+  getCasualties(): Promise<any>;
   getIncidents(options: GetIncidentsOptions): Promise<any>;
 }
 
-export const LocalGTDClient: GTDClient = {
-  async getIncidents(options: GetIncidentsOptions): Promise<Incident[]> {
-    return gtd;
+export const GtdAPIClient: GTDClient = {
+  async getCasualties(): Promise<any> {
+    const url = `${uri}/casualties`
+    const response =  await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      }
+    });
+    return response.json();
+  },
+  async getIncidents(opts: GetIncidentsOptions = {}): Promise<Incident[]> {
+    const params = []
+    if (opts.countries) {
+      params.push(`countries=${JSON.stringify(opts.countries)}`)
+    }
+
+    if (opts.count) {
+      params.push(`count=${opts.count}`)
+    }
+
+    if (opts.lastId) {
+      params.push(`lastId=${opts.lastId}`)
+    }
+
+    const query = `${params.join('&')}`;
+    const url = `${uri}/incidents?${query}`;
+    const response = await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      }
+    })
+    return response.json();
   },
 };

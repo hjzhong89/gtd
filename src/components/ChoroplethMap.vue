@@ -50,7 +50,7 @@ export default {
   },
   methods: {
     clear() {
-      this.canvas.selectAll('*').remove();
+      this.canvas.selectAll('path').remove();
       this.$emit(ChoroplethMapEvents.CLEAR, this.canvas);
     },
     draw() {

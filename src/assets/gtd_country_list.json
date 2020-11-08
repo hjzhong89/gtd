@@ -163,6 +163,14 @@
     "id": "DEU",
     "index": 40
   },
+  "East Germany (GDR)": {
+    "id": "DEU",
+    "index": 40
+  },
+  "West Germany (FRG)": {
+    "id": "DEU",
+    "index": 40
+  },
   "Djibouti": {
     "id": "DJI",
     "index": 41
@@ -224,6 +232,10 @@
     "index": 55
   },
   "England": {
+    "id": "GBR",
+    "index": 56
+  },
+  "United Kingdom": {
     "id": "GBR",
     "index": 56
   },
@@ -663,6 +675,10 @@
     "id": "URY",
     "index": 165
   },
+  "United States": {
+    "id": "USA",
+    "index": 166
+  },
   "USA": {
     "id": "USA",
     "index": 166
@@ -688,6 +704,10 @@
     "index": 171
   },
   "Yemen": {
+    "id": "YEM",
+    "index": 172
+  },
+  "South Yemen": {
     "id": "YEM",
     "index": 172
   },

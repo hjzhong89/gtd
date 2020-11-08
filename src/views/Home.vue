@@ -5,15 +5,16 @@
                    @created="handleCreated"
                    @clicked="handleClicked"
     >
-      <GTDMapper ref="gtdmapper"></GTDMapper>
+      <GTDMapper ref="gtdmapper"
+                 name="gtd-choropleth"
+      ></GTDMapper>
     </ChoroplethMap>
-    <button @click="resetCountries">Back</button>
+    <button @click="resetCountries">Reset</button>
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import {LocalGTDClient as gtd} from '@/api/GTDClient';
 import {worldCountries, countryList} from '@/api/GeoJsonProvider';
 import * as d3 from 'd3';
 import ChoroplethMap from "@/components/ChoroplethMap";
