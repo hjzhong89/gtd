@@ -5,6 +5,8 @@
           :name="feature.properties.name"
           fill="gray"
           class="path geometry"
+          stroke-width="1px"
+          stroke="black"
     >
     </path>
   </g>
@@ -46,6 +48,16 @@ export const ChoroplethMapEvents = {
 export default {
   name: 'ChoroplethMap',
   props: ChoroplethMapProperties,
+  computed: {
+    projection: function() {
+      return d3.geoMercator()
+               .center([ 0, 0 ])
+               .translate([
+                            (this.width / 2) + this.x,
+                            (this.height / 2) + this.y ])
+               .scale(this.width / (2 * Math.PI))
+    }
+  },
   methods: {
     draw() {
       const features = {
@@ -53,20 +65,15 @@ export default {
         features: this.features,
       }
       const path = d3.geoPath()
-        .projection(
-          d3.geoMercator()
-            .fitExtent([
-              [this.x, this.y],
-              [this.x + this.width, this.y + this.height],
-            ], features),
-        );
+                     .projection(
+                       this.projection);
       const geometries = d3.selectAll('.path.geometry')
-        .data(this.features)
-        .attr('d', path)
-        .on('click', (e) => {
-          this.$emit('clicked', e)
-        });
-      this.$emit(ChoroplethMapEvents.CREATED, {geometries});
+                           .data(this.features)
+                           .attr('d', path)
+                           .on('click', (e) => {
+                             this.$emit('clicked', e)
+                           });
+      this.$emit(ChoroplethMapEvents.CREATED, { geometries });
     },
     clicked(e) {
       this.$emit('clicked', e);
