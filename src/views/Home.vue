@@ -1,13 +1,11 @@
 <template>
   <div>
     <ChoroplethMap :id="`gtd-choropleth`"
-                   :topology="topology"
+                   features="topology"
                    @created="handleCreated"
                    @clicked="handleClicked"
     >
-      <GTDMapper ref="gtdmapper"
-                 name="gtd-choropleth"
-      ></GTDMapper>
+      <GTDMapper ref="gtdmapper"></GTDMapper>
     </ChoroplethMap>
     <button @click="resetCountries">Reset</button>
   </div>

@@ -1,104 +1,82 @@
 <template>
-  <div :id="id" class="choropleth container">
-    <svg :height="height + margin.top + margin.bottom"
-         :width="width + margin.left + margin.right"
-         class="choropleth canvas">
-      <slot/>
-    </svg>
-  </div>
+  <g class="choropleth">
+    <path v-for="feature in features"
+          :id="feature.id"
+          :name="feature.properties.name"
+          fill="gray"
+          class="path geometry"
+    >
+    </path>
+  </g>
 </template>
 
 <script>
-import * as d3 from 'd3';
-
 export const ChoroplethMapProperties = {
-  id: String,
+  x: {
+    type: Number,
+    default: () => 0,
+  },
+  y: {
+    type: Number,
+    default: () => 0,
+  },
   height: {
     type: Number,
-    default: 800,
+    default: () => 0,
   },
   width: {
     type: Number,
-    default: 1200,
+    default: () => 0
   },
-  margin: {
-    type: Object,
-    default: () => ({
-      top: 50,
-      bottom: 50,
-      left: 50,
-      right: 50,
-    }),
-  },
-  topology: {
+  features: {
     type: Array,
     default: () => [],
+  },
+  canvas: {
+    type: Object,
+    default: () => {
+    },
   }
 };
-
 export const ChoroplethMapEvents = {
   CLEAR: 'clear',
   CREATED: 'created',
 }
+
 export default {
   name: 'ChoroplethMap',
   props: ChoroplethMapProperties,
-  computed: {
-    canvas() {
-      return d3.select(`#${this.id} svg`);
-    }
-  },
   methods: {
-    clear() {
-      this.canvas.selectAll('path').remove();
-      this.$emit(ChoroplethMapEvents.CLEAR, this.canvas);
-    },
     draw() {
       const features = {
         type: 'FeatureCollection',
-        features: this.topology,
+        features: this.features,
       }
       const path = d3.geoPath()
         .projection(
           d3.geoMercator()
             .fitExtent([
-              [this.margin.left, this.margin.top],
-              [this.margin.left + this.width, this.margin.top + this.height],
+              [this.x, this.y],
+              [this.x + this.width, this.y + this.height],
             ], features),
         );
-      this.canvas.selectAll('path')
-        .data(this.topology)
-        .enter()
-        .append('path')
-        .attr('id', (d) => d.id)
-        .attr('name', (d) => d.properties.name)
+      const geometries = d3.selectAll('.path.geometry')
+        .data(this.features)
         .attr('d', path)
-        .attr('fill', 'gray')
-        .attr('class', 'path geometry')
         .on('click', (e) => {
           this.$emit('clicked', e)
-        })
-
-      const geometries = this.canvas.selectAll('.path.geometry');
-
-      this.$emit(ChoroplethMapEvents.CREATED, {
-        canvas: this.canvas,
-        geometries,
-      });
-    }
+        });
+      this.$emit(ChoroplethMapEvents.CREATED, {geometries});
+    },
+    clicked(e) {
+      this.$emit('clicked', e);
+    },
   },
   mounted() {
     this.draw();
   },
   updated() {
-    this.clear();
     this.draw();
-  }
+  },
 }
 </script>
-<style>
-.choropleth.canvas {
-  background-color: #2c3e50;
-  overflow: visible;
-}
-</style>
