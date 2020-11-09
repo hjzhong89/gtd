@@ -23,9 +23,17 @@
                             :max="max"
                             :width="canvasWidth"
       ></LinearGradientLegend>
-      <Pinwheel v-for="pinwheel in pinwheels"
-                :center="pinwheel.center"
-      ></Pinwheel>
+      <g id="gtd-pinwheels">
+        <Pinwheel v-for="pinwheel in pinwheels"
+                  :latitude="pinwheel.latitude"
+                  :longitude="pinwheel.longitude"
+                  :canvas-height="height"
+                  :canvas-width="width"
+                  :offset-x="margin.left"
+                  :offset-y="margin.top"
+                  :label="pinwheel.label"
+        ></Pinwheel>
+      </g>
     </svg>
   </div>
 </template>
@@ -33,7 +41,6 @@
 <script>
 import {GtdAPIClient as gtd} from "@/api/GTDClient";
 import {worldCountries, countryList} from "@/api/GeoJsonProvider";
-import PinwheelFactory from "@/factories/PinwheelFactory";
 import LinearGradientLegend from "@/components/LinearGradientLegend";
 import ChoroplethMap from "@/components/ChoroplethMap";
 import Pinwheel from "@/components/Pinwheel";
@@ -82,13 +89,23 @@ export default {
     canvasHeight: function () {
       return this.height + this.margin.top + this.margin.bottom
     },
-    pinwheels: {
-      get: function () {
-        return this.getPinwheels();
-      },
-      set: function (val) {
-        this.val = val;
-      }
+    pinwheels: function () {
+      const pinwheels = [
+        {
+          latitude: 0,
+          longitude: 0,
+          label: 'center'
+        }
+      ];
+      pinwheels.push(...this.incidents.slice(0, 10).map(incident => {
+        console.log(incident)
+        return {
+          latitude: parseFloat(incident.latitude),
+          longitude: parseFloat(incident.longitude),
+          label: `${incident.city}, ${incident.country_txt}`
+        }
+      }));
+      return pinwheels;
     },
   },
   async created() {
@@ -111,7 +128,6 @@ export default {
   methods: {
     handleCreated({geometries}) {
       this.colorize({geometries})
-      this.pinwheels = this.getPinwheels();
     },
     handleClicked(e) {
       this.focus(e);
@@ -146,24 +162,12 @@ export default {
       this.features = worldCountries.features;
       this.focused = false;
     },
-    getPinwheels() {
-      const pinwheelFactory = new PinwheelFactory(
-        this.width + this.margin.left + this.margin.right,
-        this.height + this.margin.top + this.margin.bottom,
-      )
-      return this.incidents.slice(0, 10).map(incident => {
-        return pinwheelFactory.createPinwheel({
-          latitude: incident.latitude,
-          longitude: incident.longitude,
-        })
-      })
-    }
   },
 }
 </script>
 <style>
 .choropleth.canvas {
-  background-color: #2c3e50;
+  background-color: #fff;
   overflow: visible;
 }
 </style>
