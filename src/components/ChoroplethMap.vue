@@ -5,7 +5,7 @@
           :name="feature.properties.name"
           fill="gray"
           class="path geometry"
-          stroke-width="1px"
+          stroke-width="1.5px"
           stroke="black"
     >
     </path>

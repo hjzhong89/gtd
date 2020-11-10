@@ -6,14 +6,14 @@
             fill="green"
             class="pinwheel center"
     ></circle>
-    <circle :r="r"
-            :cx="center.x"
-            :cy="center.y"
-            fill="none"
-            stroke-width="1px"
-            stroke="black"
-            class="pinwheel border"
-    ></circle>
+<!--    <circle :r="r"-->
+<!--            :cx="center.x"-->
+<!--            :cy="center.y"-->
+<!--            fill="none"-->
+<!--            stroke-width="1px"-->
+<!--            stroke="black"-->
+<!--            class="pinwheel border"-->
+<!--    ></circle>-->
     <text :x="center.x" :y="center.y">{{ label }}</text>
   </g>
 </template>
@@ -56,6 +56,10 @@ export default {
       type: Number,
       default: () => 0,
     },
+    points: {
+      type: Array,
+      default: () => [],
+    }
   },
   computed: {
     /**
