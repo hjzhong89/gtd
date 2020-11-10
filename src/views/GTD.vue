@@ -127,9 +127,15 @@ export default {
     }
   },
   methods: {
+    /**
+     * Colorize the choropleth map after rendering.
+     */
     handleCreated({geometries}) {
       this.colorize({geometries})
     },
+    /**
+     * Handle onClick event when user clicks on a country
+     */
     async handleClicked(e) {
       if (!this.focused) {
         gtd.getIncidents({
@@ -145,6 +151,9 @@ export default {
       }
       e.stopPropagation();
     },
+    /**
+     * Colorize the countries by the number of casualties in that country from terrorism
+     */
     colorize({geometries}) {
       const colorScale = d3.scalePow()
         .exponent(this.exponent)
@@ -160,14 +169,13 @@ export default {
         .attr('fill', e => {
           const count = this.casualties[e.id] ? this.casualties[e.id] : 0;
           const val = colorScale(count);
-
           return d3.interpolateReds(val);
-        })
+        });
     },
     /**
      * Zoom in on a country's bounding box;
      * set opacity to 50%;
-     * mute others by setting opacity to 0;
+     * mute others by setting opacity to 10;
      * @param e
      */
     zoom(e) {
@@ -202,6 +210,9 @@ export default {
             })
         }, feature.id)
     },
+    /**
+     * Reset zoom and opacity changes
+     */
     unzoom() {
       const zoom = d3.zoom()
         .scaleExtent([1, 8])
@@ -219,11 +230,18 @@ export default {
             .style('opacity', '100%')
         })
     },
+    /**
+     * The actual zooming mechanism
+     * @param e
+     */
     onZoom(e) {
       const geometries = d3.selectAll('.path.geometry');
       geometries.attr('transform', e.transform)
       geometries.attr('stroke-width', 1 / e.transform.k)
     },
+    /**
+     * Reset the map and incidents when a user "unfocuses" a country
+     */
     reset() {
       this.features = worldCountries.features;
       this.unzoom();
