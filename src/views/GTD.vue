@@ -18,7 +18,8 @@
       >
       </ChoroplethMap>
       <g id="gtd-pinwheels" v-if="focused">
-        <Pinwheel v-for="pinwheel in pinwheels"
+        <Pinwheel v-for="(pinwheel, i) in pinwheels"
+                  :key="i"
                   :latitude="pinwheel.latitude"
                   :longitude="pinwheel.longitude"
                   :canvas-height="height"
@@ -41,11 +42,12 @@
 </template>
 
 <script>
-import {GtdAPIClient as gtd} from "@/api/GTDClient";
-import {worldCountries} from "@/api/GeoJsonProvider";
-import LinearGradientLegend from "@/components/LinearGradientLegend";
-import ChoroplethMap from "@/components/ChoroplethMap";
-import Pinwheel from "@/components/Pinwheel";
+import * as d3 from 'd3';
+import { GtdAPIClient as gtd } from '@/api/GTDClient';
+import LinearGradientLegend from '@/components/LinearGradientLegend.vue';
+import ChoroplethMap from '@/components/ChoroplethMap.vue';
+import Pinwheel from '@/components/Pinwheel.vue';
+import worldCountries from '@/assets/world_countries.json';
 
 const GTDProps = {
   height: {
@@ -67,49 +69,46 @@ const GTDProps = {
   },
   exponent: {
     type: Number,
-    default: () => .5,
-  }
+    default: () => 0.5,
+  },
 };
 
 export default {
   name: 'GTD',
-  components: {Pinwheel, ChoroplethMap, LinearGradientLegend},
+  components: { Pinwheel, ChoroplethMap, LinearGradientLegend },
   props: GTDProps,
   computed: {
-    values: function () {
-      return Object.values(this.casualties)
+    values() {
+      return Object.values(this.casualties);
     },
-    min: function () {
+    min() {
       return d3.min(Object.values(this.casualties));
     },
-    max: function () {
+    max() {
       return d3.max(Object.values(this.casualties));
     },
-    canvasWidth: function () {
-      return this.width + this.margin.left + this.margin.right
+    canvasWidth() {
+      return this.width + this.margin.left + this.margin.right;
     },
-    canvasHeight: function () {
-      return this.height + this.margin.top + this.margin.bottom
+    canvasHeight() {
+      return this.height + this.margin.top + this.margin.bottom;
     },
-    pinwheels: function () {
-      const radius = 200
+    pinwheels() {
+      const radius = 200;
       const countries = this.incidents
-        .reduce((countries, incident) => {
-          if (incident.country === 133) {
-            console.log(incident.country)
-          }
-          if (countries[incident.city]) {
-            countries[incident.city].points.push(incident);
+        .reduce((acc, incident) => {
+          if (acc[incident.city]) {
+            acc[incident.city].points.push(incident);
           } else {
-            countries[incident.city] = {
+            acc[incident.city] = {
               latitude: incident.latitude,
               longitude: incident.longitude,
               label: incident.city,
               r: radius,
-              points: [incident]
-            }
+              points: [incident],
+            };
           }
-          return countries;
+          return acc;
         }, {});
       return Object.values(countries);
     },
@@ -124,14 +123,14 @@ export default {
       incidents: [],
       features: worldCountries.features,
       focused: false,
-    }
+    };
   },
   methods: {
     /**
      * Colorize the choropleth map after rendering.
      */
-    handleCreated({geometries}) {
-      this.colorize({geometries})
+    handleCreated({ geometries }) {
+      this.colorize({ geometries });
     },
     /**
      * Handle onClick event when user clicks on a country
@@ -141,9 +140,8 @@ export default {
         gtd.getIncidents({
           country: d3.select(`#${e.target.id}`).attr('name'),
         }).then((d) => {
-          console.log(d)
           this.incidents = d;
-        })
+        });
         this.zoom(e);
         this.focused = e.target.id;
       } else if (this.focused !== e.target.id) {
@@ -154,11 +152,11 @@ export default {
     /**
      * Colorize the countries by the number of casualties in that country from terrorism
      */
-    colorize({geometries}) {
+    colorize({ geometries }) {
       const colorScale = d3.scalePow()
         .exponent(this.exponent)
         .domain([0, this.max])
-        .range([0, 1])
+        .range([0, 1]);
 
       const transition = d3.transition()
         .duration(1050)
@@ -166,7 +164,7 @@ export default {
 
       geometries
         .transition(transition)
-        .attr('fill', e => {
+        .attr('fill', (e) => {
           const count = this.casualties[e.id] ? this.casualties[e.id] : 0;
           const val = colorScale(count);
           return d3.interpolateReds(val);
@@ -179,7 +177,7 @@ export default {
      * @param e
      */
     zoom(e) {
-      const features = worldCountries.features.filter(f => f.id === e.target.id)
+      const features = worldCountries.features.filter((f) => f.id === e.target.id);
       if (features.length < 1) {
         return;
       }
@@ -190,9 +188,9 @@ export default {
       const zoom = d3.zoom()
         .scaleExtent([1, 8])
         .on('zoom', this.onZoom);
-      const [[x0, y0], [x1, y1]] = this.$refs.gtdMap.path.bounds(feature)
+      const [[x0, y0], [x1, y1]] = this.$refs.gtdMap.path.bounds(feature);
       const canvas = d3.select('#gtd-canvas');
-      const zoomFactor = Math.max((x1 - x0) / this.width, (y1 - y0) / this.height)
+      const zoomFactor = Math.max((x1 - x0) / this.width, (y1 - y0) / this.height);
       const scaleFactor = Math.min(8, 0.9 / zoomFactor);
       const xPrime = -(x0 + x1) / 2;
       const yPrime = -(y0 + y1) / 2;
@@ -203,12 +201,10 @@ export default {
             .scale(scaleFactor)
             .translate(xPrime, yPrime))
         .call((t, id) => {
-          d3.selectAll(`.path.geometry`)
+          d3.selectAll('.path.geometry')
             .transition(t)
-            .style('opacity', e => {
-              return e.id === id ? '40%' : '10%';
-            })
-        }, feature.id)
+            .style('opacity', (ele) => (ele.id === id ? '40%' : '10%'));
+        }, feature.id);
     },
     /**
      * Reset zoom and opacity changes
@@ -224,11 +220,11 @@ export default {
 
       canvas.transition(transition)
         .call(zoom.transform, d3.zoomIdentity)
-        .call(t => {
+        .call((t) => {
           d3.selectAll('.path.geometry')
             .transition(t)
-            .style('opacity', '100%')
-        })
+            .style('opacity', '100%');
+        });
     },
     /**
      * The actual zooming mechanism
@@ -236,8 +232,8 @@ export default {
      */
     onZoom(e) {
       const geometries = d3.selectAll('.path.geometry');
-      geometries.attr('transform', e.transform)
-      geometries.attr('stroke-width', 1 / e.transform.k)
+      geometries.attr('transform', e.transform);
+      geometries.attr('stroke-width', 1 / e.transform.k);
     },
     /**
      * Reset the map and incidents when a user "unfocuses" a country
@@ -246,10 +242,10 @@ export default {
       this.features = worldCountries.features;
       this.unzoom();
       this.focused = false;
-      this.incidents = []
+      this.incidents = [];
     },
   },
-}
+};
 </script>
 <style>
 .choropleth.canvas {

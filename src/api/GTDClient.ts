@@ -17,41 +17,40 @@ export type Incident = {
 }
 
 export type GetIncidentsOptions = {
-  lastId?: string,
+  lastId?: string;
   country?: string;
-  count?: number,
+  count?: number;
 }
 
 export default interface GTDClient {
   getCasualties(): Promise<any>;
-
   getIncidents(options: GetIncidentsOptions): Promise<any>;
 }
 
 export const GtdAPIClient: GTDClient = {
   async getCasualties(): Promise<any> {
-    const url = `${uri}/casualties`
+    const url = `${uri}/casualties`;
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
+        Accept: 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
     });
     return response.json();
   },
   async getIncidents(opts: GetIncidentsOptions = {}): Promise<Incident[]> {
-    const params = []
+    const params = [];
     if (opts.country) {
-      params.push(`country=${opts.country}`)
+      params.push(`country=${opts.country}`);
     }
 
     if (opts.count) {
-      params.push(`count=${opts.count}`)
+      params.push(`count=${opts.count}`);
     }
 
     if (opts.lastId) {
-      params.push(`lastId=${opts.lastId}`)
+      params.push(`lastId=${opts.lastId}`);
     }
 
     const query = `${params.join('&')}`;
@@ -59,10 +58,10 @@ export const GtdAPIClient: GTDClient = {
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
-    })
+        Accept: 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
     return response.json();
   },
 };

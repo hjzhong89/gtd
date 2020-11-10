@@ -8,8 +8,8 @@ const routes: Array<RouteConfig> = [
   {
     path: '/',
     name: 'GTD',
-    component: GTD
-  }
+    component: GTD,
+  },
 ];
 
 const router = new VueRouter({

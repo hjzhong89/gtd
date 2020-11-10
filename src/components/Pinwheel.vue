@@ -6,19 +6,21 @@
             fill="green"
             class="pinwheel center"
     ></circle>
-<!--    <circle :r="r"-->
-<!--            :cx="center.x"-->
-<!--            :cy="center.y"-->
-<!--            fill="none"-->
-<!--            stroke-width="1px"-->
-<!--            stroke="black"-->
-<!--            class="pinwheel border"-->
-<!--    ></circle>-->
+    <!--    <circle :r="r"-->
+    <!--            :cx="center.x"-->
+    <!--            :cy="center.y"-->
+    <!--            fill="none"-->
+    <!--            stroke-width="1px"-->
+    <!--            stroke="black"-->
+    <!--            class="pinwheel border"-->
+    <!--    ></circle>-->
     <text :x="center.x" :y="center.y">{{ label }}</text>
   </g>
 </template>
 <script>
-const tau = Math.PI * 2
+import * as d3 from 'd3';
+
+const tau = Math.PI * 2;
 
 export default {
   name: 'Pinwheel',
@@ -46,7 +48,7 @@ export default {
         bottom: 0,
         left: 0,
         right: 0,
-      })
+      }),
     },
     label: {
       type: String,
@@ -59,24 +61,24 @@ export default {
     points: {
       type: Array,
       default: () => [],
-    }
+    },
   },
   computed: {
     /**
      * Converts latitude and longitude to x,y coordinates using mercator projection.
      */
-    center: function() {
+    center() {
       const projection = d3.geoMercator();
       projection.scale(this.canvasWidth / tau)
-                .translate([
-                             (this.canvasWidth + this.margin.left + this.margin.right) / 2,
-                             (this.canvasHeight + this.margin.top + this.margin.bottom) / 2
-                           ])
-      const [ x, y ] = projection([ this.longitude, this.latitude ])
-      return { x, y }
+        .translate([
+          (this.canvasWidth + this.margin.left + this.margin.right) / 2,
+          (this.canvasHeight + this.margin.top + this.margin.bottom) / 2,
+        ]);
+      const [x, y] = projection([this.longitude, this.latitude]);
+      return { x, y };
     },
   },
-}
+};
 </script>
 <style>
 .pinwheel text {
