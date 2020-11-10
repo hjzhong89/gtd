@@ -18,19 +18,20 @@ export type Incident = {
 
 export type GetIncidentsOptions = {
   lastId?: string,
-  countries?: string[];
+  country?: string;
   count?: number,
 }
 
 export default interface GTDClient {
   getCasualties(): Promise<any>;
+
   getIncidents(options: GetIncidentsOptions): Promise<any>;
 }
 
 export const GtdAPIClient: GTDClient = {
   async getCasualties(): Promise<any> {
     const url = `${uri}/casualties`
-    const response =  await fetch(url, {
+    const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -41,8 +42,8 @@ export const GtdAPIClient: GTDClient = {
   },
   async getIncidents(opts: GetIncidentsOptions = {}): Promise<Incident[]> {
     const params = []
-    if (opts.countries) {
-      params.push(`countries=${JSON.stringify(opts.countries)}`)
+    if (opts.country) {
+      params.push(`country=${opts.country}`)
     }
 
     if (opts.count) {

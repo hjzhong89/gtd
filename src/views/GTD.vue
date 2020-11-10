@@ -17,18 +17,18 @@
                      ref="gtdMap"
       >
       </ChoroplethMap>
-      <!--      <g id="gtd-pinwheels" v-if="!focused">-->
-      <!--        <Pinwheel v-for="pinwheel in pinwheels"-->
-      <!--                  :latitude="pinwheel.latitude"-->
-      <!--                  :longitude="pinwheel.longitude"-->
-      <!--                  :canvas-height="height"-->
-      <!--                  :canvas-width="width"-->
-      <!--                  :margin="margin"-->
-      <!--                  :label="pinwheel.label"-->
-      <!--                  :r="pinwheel.r"-->
-      <!--                  :points="pinwheel.points"-->
-      <!--        ></Pinwheel>-->
-      <!--      </g>-->
+      <g id="gtd-pinwheels" v-if="focused">
+        <Pinwheel v-for="pinwheel in pinwheels"
+                  :latitude="pinwheel.latitude"
+                  :longitude="pinwheel.longitude"
+                  :canvas-height="height"
+                  :canvas-width="width"
+                  :margin="margin"
+                  :label="pinwheel.label"
+                  :r="pinwheel.r"
+                  :points="pinwheel.points"
+        ></Pinwheel>
+      </g>
       <LinearGradientLegend v-if="!focused"
                             id="gtd-key"
                             :exponent="exponent"
@@ -42,7 +42,7 @@
 
 <script>
 import {GtdAPIClient as gtd} from "@/api/GTDClient";
-import {worldCountries, countryList} from "@/api/GeoJsonProvider";
+import {worldCountries} from "@/api/GeoJsonProvider";
 import LinearGradientLegend from "@/components/LinearGradientLegend";
 import ChoroplethMap from "@/components/ChoroplethMap";
 import Pinwheel from "@/components/Pinwheel";
@@ -91,36 +91,31 @@ export default {
     canvasHeight: function () {
       return this.height + this.margin.top + this.margin.bottom
     },
-    // pinwheels: function () {
-    //   const radius = 200
-    //   const countries = this.incidents
-    //     .reduce((countries, incident) => {
-    //       if (incident.country === 133) {
-    //         console.log(incident.country)
-    //       }
-    //       if (countries[incident.city]) {
-    //         countries[incident.city].points.push(incident);
-    //       } else {
-    //         countries[incident.city] = {
-    //           latitude: incident.latitude,
-    //           longitude: incident.longitude,
-    //           label: incident.city,
-    //           r: radius,
-    //           points: [incident]
-    //         }
-    //       }
-    //       return countries;
-    //     }, {});
-    //   return Object.values(countries);
-    // },
+    pinwheels: function () {
+      const radius = 200
+      const countries = this.incidents
+        .reduce((countries, incident) => {
+          if (incident.country === 133) {
+            console.log(incident.country)
+          }
+          if (countries[incident.city]) {
+            countries[incident.city].points.push(incident);
+          } else {
+            countries[incident.city] = {
+              latitude: incident.latitude,
+              longitude: incident.longitude,
+              label: incident.city,
+              r: radius,
+              points: [incident]
+            }
+          }
+          return countries;
+        }, {});
+      return Object.values(countries);
+    },
   },
   async created() {
-    // const [casualties, incidents] = await Promise.all([
-    //   gtd.getCasualties(),
-    //   gtd.getIncidents(),
-    // ]);
     this.casualties = await gtd.getCasualties();
-    // this.incidents = incidents;
     this.$refs.gtdMap.draw();
   },
   data() {
@@ -135,8 +130,19 @@ export default {
     handleCreated({geometries}) {
       this.colorize({geometries})
     },
-    handleClicked(e) {
-      this.focus(e);
+    async handleClicked(e) {
+      if (!this.focused) {
+        gtd.getIncidents({
+          country: d3.select(`#${e.target.id}`).attr('name'),
+        }).then((d) => {
+          this.incidents = d;
+        })
+        this.zoom(e);
+        this.focused = e.target.id;
+      } else if (this.focused !== e.target.id) {
+        this.reset();
+      }
+      e.stopPropagation();
     },
     colorize({geometries}) {
       const colorScale = d3.scalePow()
@@ -157,17 +163,6 @@ export default {
           return d3.interpolateReds(val);
         })
     },
-    focus(e) {
-      console.log('focus', this.focused)
-      if (!this.focused) {
-        this.zoom(e);
-        this.focused = e.target.id;
-      } else if (this.focused !== e.target.id) {
-        this.reset();
-      }
-      e.stopPropagation();
-    },
-
     /**
      * Zoom in on a country's bounding box;
      * set opacity to 50%;
@@ -232,13 +227,14 @@ export default {
       this.features = worldCountries.features;
       this.unzoom();
       this.focused = false;
+      this.incidents = []
     },
   },
 }
 </script>
 <style>
 .choropleth.canvas {
-  background-color: #fff;
+  background-color: #2c3e50;
   overflow: hidden;
 }
 
