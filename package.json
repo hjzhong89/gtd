@@ -11,6 +11,7 @@
     "core-js": "^3.6.5",
     "d3": "^6.2.0",
     "d3-geo-projection": "^3.0.0",
+    "d3-zoom": "^2.0.0",
     "topojson": "^3.0.2",
     "vue": "^2.6.11",
     "vue-class-component": "^7.2.3",

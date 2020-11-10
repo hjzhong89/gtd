@@ -22,11 +22,11 @@ export const ChoroplethMapProperties = {
     type: Number,
     default: () => 0,
   },
-  height: {
+  canvasHeight: {
     type: Number,
     default: () => 0,
   },
-  width: {
+  canvasWidth: {
     type: Number,
     default: () => 0
   },
@@ -51,32 +51,25 @@ export default {
   computed: {
     projection: function() {
       return d3.geoMercator()
-               .center([ 0, 0 ])
                .translate([
-                            (this.width / 2) + this.x,
-                            (this.height / 2) + this.y ])
-               .scale(this.width / (2 * Math.PI))
-    }
+                            (this.canvasWidth / 2) + this.x,
+                            (this.canvasHeight / 2) + this.y ])
+               .scale(this.canvasWidth / (2 * Math.PI))
+
+    },
+    path: function() {
+      return d3.geoPath().projection(this.projection);
+    },
   },
   methods: {
     draw() {
-      const features = {
-        type: 'FeatureCollection',
-        features: this.features,
-      }
-      const path = d3.geoPath()
-                     .projection(
-                       this.projection);
       const geometries = d3.selectAll('.path.geometry')
                            .data(this.features)
-                           .attr('d', path)
+                           .attr('d', this.path)
                            .on('click', (e) => {
                              this.$emit('clicked', e)
                            });
       this.$emit(ChoroplethMapEvents.CREATED, { geometries });
-    },
-    clicked(e) {
-      this.$emit('clicked', e);
     },
   },
   mounted() {

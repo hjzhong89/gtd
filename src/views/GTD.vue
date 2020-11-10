@@ -8,8 +8,8 @@
     >
       <ChoroplethMap id="gtd-map"
                      :features="features"
-                     :width="width"
-                     :height="height"
+                     :canvas-width="width"
+                     :canvas-height="height"
                      :x="margin.left"
                      :y="margin.top"
                      @created="handleCreated"
@@ -17,30 +17,30 @@
                      ref="gtdMap"
       >
       </ChoroplethMap>
+      <g id="gtd-pinwheels" v-if="!focused">
+        <Pinwheel v-for="pinwheel in pinwheels"
+                  :latitude="pinwheel.latitude"
+                  :longitude="pinwheel.longitude"
+                  :canvas-height="height"
+                  :canvas-width="width"
+                  :margin="margin"
+                  :label="pinwheel.label"
+                  :r="pinwheel.r"
+        ></Pinwheel>
+      </g>
       <LinearGradientLegend id="gtd-key"
                             :exponent="exponent"
                             :min="0"
                             :max="max"
                             :width="canvasWidth"
       ></LinearGradientLegend>
-      <g id="gtd-pinwheels">
-        <Pinwheel v-for="pinwheel in pinwheels"
-                  :latitude="pinwheel.latitude"
-                  :longitude="pinwheel.longitude"
-                  :height="height"
-                  :width="width"
-                  :margin="margin"
-                  :label="pinwheel.label"
-                  :features="features"
-        ></Pinwheel>
-      </g>
     </svg>
   </div>
 </template>
 
 <script>
 import { GtdAPIClient as gtd } from "@/api/GTDClient";
-import { worldCountries, countryList } from "@/api/GeoJsonProvider";
+import { worldCountries } from "@/api/GeoJsonProvider";
 import LinearGradientLegend from "@/components/LinearGradientLegend";
 import ChoroplethMap from "@/components/ChoroplethMap";
 import Pinwheel from "@/components/Pinwheel";
@@ -90,26 +90,24 @@ export default {
       return this.height + this.margin.top + this.margin.bottom
     },
     pinwheels: function() {
+      const radius = 200
       const pinwheels = [
         {
           latitude: 0,
           longitude: 0,
-          label: 'center'
+          label: 'center',
+          r: radius
         }
       ];
       pinwheels.push(...this.incidents.slice(0, 10).map(incident => {
         return {
           latitude: parseFloat(incident.latitude),
           longitude: parseFloat(incident.longitude),
-          label: `${incident.city}, ${incident.country_txt}`
+          label: `${incident.city}`,
+          r: radius,
         }
       }));
       return pinwheels;
-    },
-    projection: function() {
-      return d3.geoMercator()
-               .scale(this.canvasWidth / tau)
-               .translate([ this.canvasWidth / 2, this.canvasHeight / 2 ])
     },
   },
   async created() {
@@ -133,8 +131,10 @@ export default {
     handleCreated({ geometries }) {
       this.colorize({ geometries })
     },
-    handleClicked(e) {
-      this.focus(e);
+    handleClicked(e, d) {
+      // this.focus(e);
+      this.zoom(e);
+
     },
     colorize({ geometries }) {
       const colorScale = d3.scalePow()
@@ -152,15 +152,24 @@ export default {
       e.stopPropagation();
       const { target } = e;
       const id = target.id;
-      const country = d3.select(`#${id}`).attr('name');
+      const features = worldCountries.features.filter(c => c.id === id);
 
-      if(!this.focused && countryList[ country ]) {
-        const index = countryList[ country ].index;
-        this.features = [ worldCountries.features[ index ] ]
+      if(!this.focused && features.length > 0) {
+        this.features = features
         this.focused = true;
       } else {
         this.resetMap();
       }
+    },
+    zoom(e) {
+      e.stopPropagation();
+      const features = worldCountries.features.filter(f => f.id === e.target.id)
+      if (features.length < 1) {
+        return;
+      }
+      const feature = features[0];
+      const [[x0, y0], [x1, y1]] = this.$refs.gtdMap.path.bounds(feature)
+      console.log(x0, x1, y0, y1)
     },
     resetMap() {
       this.features = worldCountries.features;
@@ -173,5 +182,9 @@ export default {
 .choropleth.canvas {
   background-color: #fff;
   overflow: hidden;
+}
+
+.linear-gradient-legend text {
+  font-weight: bold;
 }
 </style>

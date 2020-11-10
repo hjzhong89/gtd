@@ -4,14 +4,20 @@
             :cx="center.x"
             :cy="center.y"
             fill="green"
+            class="pinwheel center"
+    ></circle>
+    <circle :r="r"
+            :cx="center.x"
+            :cy="center.y"
+            fill="none"
+            stroke-width="1px"
+            stroke="black"
+            class="pinwheel border"
     ></circle>
     <text :x="center.x" :y="center.y">{{ label }}</text>
   </g>
 </template>
-
 <script>
-const halfPi = Math.PI / 2
-const quarterPi = Math.PI / 4
 const tau = Math.PI * 2
 
 export default {
@@ -25,11 +31,11 @@ export default {
       type: Number,
       default: () => 0,
     },
-    width: {
+    canvasWidth: {
       type: Number,
       default: () => 0,
     },
-    height: {
+    canvasHeight: {
       type: Number,
       default: () => 0,
     },
@@ -46,26 +52,23 @@ export default {
       type: String,
       default: () => '',
     },
+    r: {
+      type: Number,
+      default: () => 0,
+    },
   },
   computed: {
-
     /**
      * Converts latitude and longitude to x,y coordinates using mercator projection.
      */
     center: function() {
       const projection = d3.geoMercator();
-      projection.scale(this.width / tau)
+      projection.scale(this.canvasWidth / tau)
                 .translate([
-                             (this.width + this.margin.left + this.margin.right) / 2,
-                             (this.height + this.margin.top + this.margin.bottom) / 2
+                             (this.canvasWidth + this.margin.left + this.margin.right) / 2,
+                             (this.canvasHeight + this.margin.top + this.margin.bottom) / 2
                            ])
-      const lambda = this.longitude * (Math.PI / 180)
-      const phi = this.latitude * (Math.PI / 180)
-
-      console.log(this.longitude, this.latitude)
-
       const [ x, y ] = projection([ this.longitude, this.latitude ])
-      console.log('x,y', x, y)
       return { x, y }
     },
   },
