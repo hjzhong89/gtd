@@ -1,6 +1,5 @@
 import Vue from 'vue';
 import VueRouter, { RouteConfig } from 'vue-router';
-import Home from '../views/Home.vue';
 import GTD from '../views/GTD.vue';
 
 Vue.use(VueRouter);
@@ -8,11 +7,6 @@ Vue.use(VueRouter);
 const routes: Array<RouteConfig> = [
   {
     path: '/',
-    name: 'Home',
-    component: Home,
-  },
-  {
-    path: '/GTD',
     name: 'GTD',
     component: GTD
   }
