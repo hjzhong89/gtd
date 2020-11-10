@@ -135,6 +135,7 @@ export default {
         gtd.getIncidents({
           country: d3.select(`#${e.target.id}`).attr('name'),
         }).then((d) => {
+          console.log(d)
           this.incidents = d;
         })
         this.zoom(e);
@@ -197,7 +198,7 @@ export default {
           d3.selectAll(`.path.geometry`)
             .transition(t)
             .style('opacity', e => {
-              return e.id === id ? '40%' : '0%';
+              return e.id === id ? '40%' : '10%';
             })
         }, feature.id)
     },
