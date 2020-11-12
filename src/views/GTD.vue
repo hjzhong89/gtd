@@ -20,14 +20,18 @@
       <g id="gtd-pinwheels" v-if="focused">
         <Pinwheel v-for="(pinwheel, i) in pinwheels"
                   :key="i"
-                  :latitude="pinwheel.latitude"
-                  :longitude="pinwheel.longitude"
+                  :border-stroke="pinwheel.borderStroke"
+                  :canvas-center="center"
                   :canvas-height="height"
                   :canvas-width="width"
-                  :margin="margin"
+                  :k="k"
                   :label="pinwheel.label"
-                  :r="pinwheel.r"
+                  :latitude="pinwheel.latitude"
+                  :longitude="pinwheel.longitude"
+                  :margin="margin"
                   :points="pinwheel.points"
+                  :r="pinwheel.r"
+                  ref="gtdPinwheels"
         ></Pinwheel>
       </g>
       <LinearGradientLegend v-if="!focused"
@@ -43,7 +47,7 @@
 
 <script>
 import * as d3 from 'd3';
-import { GtdAPIClient as gtd } from '@/api/GTDClient';
+import {GtdAPIClient as gtd} from '@/api/GTDClient';
 import LinearGradientLegend from '@/components/LinearGradientLegend.vue';
 import ChoroplethMap from '@/components/ChoroplethMap.vue';
 import Pinwheel from '@/components/Pinwheel.vue';
@@ -75,11 +79,14 @@ const GTDProps = {
 
 export default {
   name: 'GTD',
-  components: { Pinwheel, ChoroplethMap, LinearGradientLegend },
+  components: {Pinwheel, ChoroplethMap, LinearGradientLegend},
   props: GTDProps,
   computed: {
-    values() {
-      return Object.values(this.casualties);
+    canvasWidth() {
+      return this.width + this.margin.left + this.margin.right;
+    },
+    canvasHeight() {
+      return this.height + this.margin.top + this.margin.bottom;
     },
     min() {
       return d3.min(Object.values(this.casualties));
@@ -87,50 +94,60 @@ export default {
     max() {
       return d3.max(Object.values(this.casualties));
     },
-    canvasWidth() {
-      return this.width + this.margin.left + this.margin.right;
-    },
-    canvasHeight() {
-      return this.height + this.margin.top + this.margin.bottom;
-    },
     pinwheels() {
-      const radius = 200;
+      const scale = d3.scaleSqrt()
+      .domain([this.min, this.max])
+      .range([1, 5])
+      const minRadius = 50;
       const countries = this.incidents
         .reduce((acc, incident) => {
+          if (acc[incident.city] === 'Unknown') {
+            return acc
+          }
+          const nkill = scale(incident.nkill) * minRadius
+
           if (acc[incident.city]) {
+            acc[incident.city].r += nkill;
             acc[incident.city].points.push(incident);
           } else {
             acc[incident.city] = {
               latitude: incident.latitude,
               longitude: incident.longitude,
               label: incident.city,
-              r: radius,
+              r: nkill,
               points: [incident],
             };
           }
+
           return acc;
         }, {});
       return Object.values(countries);
     },
   },
   async created() {
+    this.center = {
+      x: this.width / 2,
+      y: this.height / 2,
+    }
     this.casualties = await gtd.getCasualties();
     this.$refs.gtdMap.draw();
   },
   data() {
     return {
       casualties: {},
-      incidents: [],
       features: worldCountries.features,
       focused: false,
+      incidents: [],
+      k: 1,
+      center: {}
     };
   },
   methods: {
     /**
      * Colorize the choropleth map after rendering.
      */
-    handleCreated({ geometries }) {
-      this.colorize({ geometries });
+    handleCreated({geometries}) {
+      this.colorize({geometries});
     },
     /**
      * Handle onClick event when user clicks on a country
@@ -152,7 +169,7 @@ export default {
     /**
      * Colorize the countries by the number of casualties in that country from terrorism
      */
-    colorize({ geometries }) {
+    colorize({geometries}) {
       const colorScale = d3.scalePow()
         .exponent(this.exponent)
         .domain([0, this.max])
@@ -192,8 +209,8 @@ export default {
       const canvas = d3.select('#gtd-canvas');
       const zoomFactor = Math.max((x1 - x0) / this.width, (y1 - y0) / this.height);
       const scaleFactor = Math.min(8, 0.9 / zoomFactor);
-      const xPrime = -(x0 + x1) / 2;
-      const yPrime = -(y0 + y1) / 2;
+      const xPrime = (x0 + x1) / -2;
+      const yPrime = (y0 + y1) / -2;
 
       canvas.transition(transition)
         .call(zoom.transform,
@@ -205,6 +222,8 @@ export default {
             .transition(t)
             .style('opacity', (ele) => (ele.id === id ? '40%' : '10%'));
         }, feature.id);
+
+      this.center = {x: ((x1 - x0) / 2) * x1, y: y1 + ((y1 - y0) / 2)}
     },
     /**
      * Reset zoom and opacity changes
@@ -231,9 +250,13 @@ export default {
      * @param e
      */
     onZoom(e) {
+      this.k = e.transform.k
       const geometries = d3.selectAll('.path.geometry');
       geometries.attr('transform', e.transform);
-      geometries.attr('stroke-width', 1 / e.transform.k);
+      geometries.attr('stroke-width', 1 / this.k);
+
+      d3.select('#gtd-pinwheels')
+        .attr('transform', e.transform)
     },
     /**
      * Reset the map and incidents when a user "unfocuses" a country

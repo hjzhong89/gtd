@@ -1,20 +1,21 @@
 <template>
   <g class="pinwheel">
-    <circle r="5"
+    <circle :r="5/k"
             :cx="center.x"
             :cy="center.y"
             fill="green"
             class="pinwheel center"
     ></circle>
-    <!--    <circle :r="r"-->
-    <!--            :cx="center.x"-->
-    <!--            :cy="center.y"-->
-    <!--            fill="none"-->
-    <!--            stroke-width="1px"-->
-    <!--            stroke="black"-->
-    <!--            class="pinwheel border"-->
-    <!--    ></circle>-->
-    <text :x="center.x" :y="center.y">{{ label }}</text>
+    <circle :r="r/k"
+            :cx="center.x"
+            :cy="center.y"
+            :stroke-width="`${1/k}px`"
+            :stroke="borderStroke"
+            fill="none"
+            class="pinwheel border"
+    ></circle>
+    <!--    <text :x="center.x"-->
+    <!--          :y="center.y">{{ label }}</text>-->
   </g>
 </template>
 <script>
@@ -25,11 +26,11 @@ const tau = Math.PI * 2;
 export default {
   name: 'Pinwheel',
   props: {
-    latitude: {
-      type: Number,
-      default: () => 0,
+    borderStroke: {
+      type: String,
+      default: () => 'black'
     },
-    longitude: {
+    canvasHeight: {
       type: Number,
       default: () => 0,
     },
@@ -37,7 +38,19 @@ export default {
       type: Number,
       default: () => 0,
     },
-    canvasHeight: {
+    k: {
+      type: Number,
+      default: () => 1,
+    },
+    label: {
+      type: String,
+      default: () => '',
+    },
+    latitude: {
+      type: Number,
+      default: () => 0,
+    },
+    longitude: {
       type: Number,
       default: () => 0,
     },
@@ -50,17 +63,13 @@ export default {
         right: 0,
       }),
     },
-    label: {
-      type: String,
-      default: () => '',
+    points: {
+      type: Array,
+      default: () => [],
     },
     r: {
       type: Number,
       default: () => 0,
-    },
-    points: {
-      type: Array,
-      default: () => [],
     },
   },
   computed: {
@@ -75,7 +84,7 @@ export default {
           (this.canvasHeight + this.margin.top + this.margin.bottom) / 2,
         ]);
       const [x, y] = projection([this.longitude, this.latitude]);
-      return { x, y };
+      return {x, y};
     },
   },
 };
@@ -83,7 +92,7 @@ export default {
 <style>
 .pinwheel text {
   font-weight: bold;
-  font-size: 1.2em;
+  font-size: 8pt;
   fill: black;
 }
 </style>
