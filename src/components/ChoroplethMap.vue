@@ -6,16 +6,14 @@
           :name="feature.properties.name"
           fill="gray"
           class="path geometry"
-          stroke-width="1.5px"
-          stroke="black"
+          stroke-width=".5px"
+          stroke="white"
     >
     </path>
   </g>
 </template>
 
 <script>
-import * as d3 from 'd3';
-
 export const ChoroplethMapProperties = {
   x: {
     type: Number,

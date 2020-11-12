@@ -19,8 +19,6 @@
   </g>
 </template>
 <script>
-import * as d3 from 'd3';
-
 const tau = Math.PI * 2;
 
 export default {
