@@ -17,28 +17,35 @@
                      ref="gtdMap"
       >
       </ChoroplethMap>
-      <g id="gtd-pinwheels" v-if="focused">
-        <Pinwheel v-for="(pinwheel, i) in pinwheels"
-                  :key="i"
-                  :border-stroke="pinwheel.borderStroke"
-                  :canvas-center="center"
-                  :canvas-height="height"
-                  :canvas-width="width"
-                  :k="k"
-                  :label="pinwheel.label"
-                  :latitude="pinwheel.latitude"
-                  :longitude="pinwheel.longitude"
-                  :margin="margin"
-                  :points="pinwheel.points"
-                  :r="pinwheel.r"
-                  ref="gtdPinwheels"
-        ></Pinwheel>
+<!--      <g id="gtd-pinwheels" v-if="focused">-->
+<!--        <Pinwheel v-for="(pinwheel, i) in pinwheels"-->
+<!--                  :key="i"-->
+<!--                  :border-stroke="pinwheel.borderStroke"-->
+<!--                  :canvas-center="center"-->
+<!--                  :canvas-height="height"-->
+<!--                  :canvas-width="width"-->
+<!--                  :k="k"-->
+<!--                  :label="pinwheel.label"-->
+<!--                  :latitude="pinwheel.latitude"-->
+<!--                  :longitude="pinwheel.longitude"-->
+<!--                  :margin="margin"-->
+<!--                  :points="pinwheel.points"-->
+<!--                  :r="pinwheel.r"-->
+<!--                  ref="gtdPinwheels"-->
+<!--        ></Pinwheel>-->
+<!--      </g>-->
+      <g id="gtd-nkill-ring">
+        <circle :cx="center.x"
+                :cy="center.y"
+                :r="5"
+                stroke="5px"
+        ></circle>
       </g>
       <LinearGradientLegend v-if="!focused"
                             id="gtd-key"
                             :exponent="exponent"
                             :min="0"
-                            :max="max"
+                            :max="maxCasualties"
                             :width="canvasWidth"
       ></LinearGradientLegend>
     </svg>
@@ -88,16 +95,16 @@ export default {
     canvasHeight() {
       return this.height + this.margin.top + this.margin.bottom;
     },
-    min() {
-      return d3.min(Object.values(this.casualties));
+    minCasualties() {
+      return d3.min(Object.values(this.countries).map(c => c.totalCasualties));
     },
-    max() {
-      return d3.max(Object.values(this.casualties));
+    maxCasualties() {
+      return d3.max(Object.values(this.countries).map(c => c.totalCasualties));
     },
     pinwheels() {
       const scale = d3.scaleSqrt()
-      .domain([this.min, this.max])
-      .range([1, 5])
+        .domain([0, this.maxCasualties])
+        .range([1, 5])
       const minRadius = 50;
       const countries = this.incidents
         .reduce((acc, incident) => {
@@ -129,12 +136,12 @@ export default {
       x: this.width / 2,
       y: this.height / 2,
     }
-    this.casualties = await gtd.getCasualties();
+    this.countries = await gtd.getCountries();
     this.$refs.gtdMap.draw();
   },
   data() {
     return {
-      casualties: {},
+      countries: {},
       features: worldCountries.features,
       focused: false,
       incidents: [],
@@ -153,12 +160,15 @@ export default {
      * Handle onClick event when user clicks on a country
      */
     async handleClicked(e) {
+      const id = e.target.id;
+
       if (!this.focused) {
         gtd.getIncidents({
-          country: d3.select(`#${e.target.id}`).attr('name'),
+          country: this.countries[id].name,
+          minCasualties: 1,
         }).then((d) => {
-          this.incidents = d;
-        });
+            this.incidents = d;
+          });
         this.zoom(e);
         this.focused = e.target.id;
       } else if (this.focused !== e.target.id) {
@@ -172,17 +182,18 @@ export default {
     colorize({geometries}) {
       const colorScale = d3.scalePow()
         .exponent(this.exponent)
-        .domain([0, this.max])
+        .domain([0, this.maxCasualties])
         .range([0, 1]);
 
       const transition = d3.transition()
         .duration(1050)
         .ease(d3.easeLinear);
 
+      const countries = this.countries;
       geometries
         .transition(transition)
-        .attr('fill', (e) => {
-          const count = this.casualties[e.id] ? this.casualties[e.id] : 0;
+        .attr('fill', function (e) {
+          const count = countries[e.id] ? countries[e.id].totalCasualties : 0;
           const val = colorScale(count);
           return d3.interpolateReds(val);
         });

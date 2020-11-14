@@ -16,20 +16,37 @@ export type Incident = {
   [props: string]: any;
 }
 
+export type GetCountryOptions = {
+  countries?: Array<string>;
+  minCasualties?: number;
+}
+export type GetCountryRecord = {
+  totalCasualties: number,
+  totalIncidents: number,
+  incidents: Array<string>
+}
+
 export type GetIncidentsOptions = {
-  lastId?: string;
   country?: string;
-  count?: number;
+  minCasualties?: number;
 }
 
 export default interface GTDClient {
-  getCasualties(): Promise<any>;
-  getIncidents(options: GetIncidentsOptions): Promise<any>;
+  getCountries(opts: GetCountryOptions): Promise<Map<string, GetCountryRecord>>;
+  getIncidents(opts: GetIncidentsOptions): Promise<any>;
 }
 
 export const GtdAPIClient: GTDClient = {
-  async getCasualties(): Promise<any> {
-    const url = `${uri}/casualties`;
+  async getCountries(opts: GetCountryOptions = {}): Promise<any> {
+    const params = [];
+    if (opts.countries) {
+      params.push(`countries=${JSON.stringify(opts.countries)}`)
+    }
+    if (opts.minCasualties) {
+      params.push(`minCasualties=${opts.minCasualties}`)
+    }
+    const query = params.length > 0 ? `?${params.join('&')}` : ''
+    const url = encodeURI(`${uri}/country${query}`);
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
@@ -44,17 +61,12 @@ export const GtdAPIClient: GTDClient = {
     if (opts.country) {
       params.push(`country=${opts.country}`);
     }
-
-    if (opts.count) {
-      params.push(`count=${opts.count}`);
-    }
-
-    if (opts.lastId) {
-      params.push(`lastId=${opts.lastId}`);
+    if (opts.minCasualties) {
+      params.push(`minCasualties=${opts.minCasualties}`)
     }
 
     const query = `${params.join('&')}`;
-    const url = `${uri}/incidents?${query}`;
+    const url = encodeURI(`${uri}/incident?${query}`);
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',

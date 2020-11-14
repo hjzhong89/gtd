@@ -69,12 +69,6 @@ export default {
       this.$emit(ChoroplethMapEvents.CREATED, { geometries });
     },
   },
-  mounted() {
-    this.draw();
-  },
-  updated() {
-    this.draw();
-  },
 };
 </script>
 <style>
