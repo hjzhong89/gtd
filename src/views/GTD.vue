@@ -1,10 +1,11 @@
 <template>
   <div>
-    <svg :height="height + margin.top + margin.bottom"
-         :width="width + margin.left + margin.right"
-         class="gtd choropleth canvas"
-         id="gtd-canvas"
-         @click="reset"
+    <svg
+      :height="canvasHeight"
+      :width="canvasWidth"
+      class="gtd choropleth canvas"
+      id="gtd-canvas"
+      @click="reset"
     >
       <ChoroplethMap id="gtd-map"
                      :features="features"
@@ -53,8 +54,7 @@
 </template>
 
 <script>
-import * as d3 from 'd3';
-import {GtdAPIClient as gtd} from '@/api/GTDClient';
+import { GtdAPIClient as gtd } from '@/api/GTDClient';
 import LinearGradientLegend from '@/components/LinearGradientLegend.vue';
 import ChoroplethMap from '@/components/ChoroplethMap.vue';
 import Pinwheel from '@/components/Pinwheel.vue';
@@ -86,7 +86,7 @@ const GTDProps = {
 
 export default {
   name: 'GTD',
-  components: {Pinwheel, ChoroplethMap, LinearGradientLegend},
+  components: { Pinwheel, ChoroplethMap, LinearGradientLegend },
   props: GTDProps,
   computed: {
     canvasWidth() {
@@ -107,27 +107,27 @@ export default {
         .range([1, 5])
       const minRadius = 50;
       const countries = this.incidents
-        .reduce((acc, incident) => {
-          if (acc[incident.city] === 'Unknown') {
-            return acc
-          }
-          const nkill = scale(incident.nkill) * minRadius
+                            .reduce((acc, incident) => {
+                              if(acc[ incident.city ] === 'Unknown') {
+                                return acc
+                              }
+                              const nkill = scale(incident.nkill) * minRadius
 
-          if (acc[incident.city]) {
-            acc[incident.city].r += nkill;
-            acc[incident.city].points.push(incident);
-          } else {
-            acc[incident.city] = {
-              latitude: incident.latitude,
-              longitude: incident.longitude,
-              label: incident.city,
-              r: nkill,
-              points: [incident],
-            };
-          }
+                              if(acc[ incident.city ]) {
+                                acc[ incident.city ].r += nkill;
+                                acc[ incident.city ].points.push(incident);
+                              } else {
+                                acc[ incident.city ] = {
+                                  latitude: incident.latitude,
+                                  longitude: incident.longitude,
+                                  label: incident.city,
+                                  r: nkill,
+                                  points: [ incident ],
+                                };
+                              }
 
-          return acc;
-        }, {});
+                              return acc;
+                            }, {});
       return Object.values(countries);
     },
   },
@@ -138,6 +138,10 @@ export default {
     }
     this.countries = await gtd.getCountries();
     this.$refs.gtdMap.draw();
+    const zoom = d3.zoom()
+                   .scaleExtent([ 1, 8 ])
+                   .on('zoom', this.onZoom);
+    d3.select('svg').call(zoom)
   },
   data() {
     return {
@@ -171,7 +175,7 @@ export default {
           });
         this.zoom(e);
         this.focused = e.target.id;
-      } else if (this.focused !== e.target.id) {
+      } else if(this.focused !== e.target.id) {
         this.reset();
       }
       e.stopPropagation();
@@ -186,8 +190,8 @@ export default {
         .range([0, 1]);
 
       const transition = d3.transition()
-        .duration(1050)
-        .ease(d3.easeLinear);
+                           .duration(1050)
+                           .ease(d3.easeLinear);
 
       const countries = this.countries;
       geometries
@@ -206,17 +210,17 @@ export default {
      */
     zoom(e) {
       const features = worldCountries.features.filter((f) => f.id === e.target.id);
-      if (features.length < 1) {
+      if(features.length < 1) {
         return;
       }
-      const feature = features[0];
+      const feature = features[ 0 ];
       const transition = d3.transition()
-        .duration(1050)
-        .ease(d3.easeLinear);
+                           .duration(1050)
+                           .ease(d3.easeLinear);
       const zoom = d3.zoom()
-        .scaleExtent([1, 8])
-        .on('zoom', this.onZoom);
-      const [[x0, y0], [x1, y1]] = this.$refs.gtdMap.path.bounds(feature);
+                     .scaleExtent([ 1, 8 ])
+                     .on('zoom', this.onZoom);
+      const [ [ x0, y0 ], [ x1, y1 ] ] = this.$refs.gtdMap.path.bounds(feature);
       const canvas = d3.select('#gtd-canvas');
       const zoomFactor = Math.max((x1 - x0) / this.width, (y1 - y0) / this.height);
       const scaleFactor = Math.min(8, 0.9 / zoomFactor);
@@ -224,37 +228,37 @@ export default {
       const yPrime = (y0 + y1) / -2;
 
       canvas.transition(transition)
-        .call(zoom.transform,
-          d3.zoomIdentity.translate(this.width / 2, this.height / 2)
-            .scale(scaleFactor)
-            .translate(xPrime, yPrime))
-        .call((t, id) => {
-          d3.selectAll('.path.geometry')
-            .transition(t)
-            .style('opacity', (ele) => (ele.id === id ? '40%' : '10%'));
-        }, feature.id);
+            .call(zoom.transform,
+                  d3.zoomIdentity.translate(this.width / 2, this.height / 2)
+                    .scale(scaleFactor)
+                    .translate(xPrime, yPrime))
+            .call((t, id) => {
+              d3.selectAll('.path.geometry')
+                .transition(t)
+                .style('opacity', (ele) => (ele.id === id ? '40%' : '10%'));
+            }, feature.id);
 
-      this.center = {x: ((x1 - x0) / 2) * x1, y: y1 + ((y1 - y0) / 2)}
+      this.center = { x: ((x1 - x0) / 2) * x1, y: y1 + ((y1 - y0) / 2) }
     },
     /**
      * Reset zoom and opacity changes
      */
     unzoom() {
       const zoom = d3.zoom()
-        .scaleExtent([1, 8])
-        .on('zoom', this.onZoom);
+                     .scaleExtent([ 1, 8 ])
+                     .on('zoom', this.onZoom);
       const transition = d3.transition()
-        .duration(1050)
-        .ease(d3.easeLinear);
+                           .duration(1050)
+                           .ease(d3.easeLinear);
       const canvas = d3.select('#gtd-canvas');
 
       canvas.transition(transition)
-        .call(zoom.transform, d3.zoomIdentity)
-        .call((t) => {
-          d3.selectAll('.path.geometry')
-            .transition(t)
-            .style('opacity', '100%');
-        });
+            .call(zoom.transform, d3.zoomIdentity)
+            .call((t) => {
+              d3.selectAll('.path.geometry')
+                .transition(t)
+                .style('opacity', '100%');
+            });
     },
     /**
      * The actual zooming mechanism
