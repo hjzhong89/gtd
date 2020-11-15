@@ -1,5 +1,6 @@
 <template>
   <div>
+    <h2>Title here</h2>
     <svg
       :height="canvasHeight"
       :width="canvasWidth"
@@ -18,35 +19,24 @@
                      ref="gtdMap"
       >
       </ChoroplethMap>
-<!--      <g id="gtd-pinwheels" v-if="focused">-->
-<!--        <Pinwheel v-for="(pinwheel, i) in pinwheels"-->
-<!--                  :key="i"-->
-<!--                  :border-stroke="pinwheel.borderStroke"-->
-<!--                  :canvas-center="center"-->
-<!--                  :canvas-height="height"-->
-<!--                  :canvas-width="width"-->
-<!--                  :k="k"-->
-<!--                  :label="pinwheel.label"-->
-<!--                  :latitude="pinwheel.latitude"-->
-<!--                  :longitude="pinwheel.longitude"-->
-<!--                  :margin="margin"-->
-<!--                  :points="pinwheel.points"-->
-<!--                  :r="pinwheel.r"-->
-<!--                  ref="gtdPinwheels"-->
-<!--        ></Pinwheel>-->
-<!--      </g>-->
-      <g id="gtd-nkill-ring">
-        <circle :cx="center.x"
-                :cy="center.y"
-                :r="5"
-                stroke="5px"
-        ></circle>
+      <g id="gtd-rings" v-if="focused">
+        <NodeRing v-for="(ring,  i) in rings"
+                  :key="i"
+                  :center="ring.center"
+                  :r="ring.r / k"
+                  :label="ring.label"
+                  :nodes="ring.nodes"
+                  :canvas-width="width"
+                  :canvas-height="height"
+                  :margin="margin"
+                  :color="ring.color"
+        ></NodeRing>
       </g>
       <LinearGradientLegend v-if="!focused"
                             id="gtd-key"
                             :exponent="exponent"
                             :min="0"
-                            :max="maxCasualties"
+                            :max="mostCasualties"
                             :width="canvasWidth"
       ></LinearGradientLegend>
     </svg>
@@ -54,11 +44,12 @@
 </template>
 
 <script>
-import { GtdAPIClient as gtd } from '@/api/GTDClient';
+import {GtdAPIClient as gtd} from '@/api/GTDClient';
 import LinearGradientLegend from '@/components/LinearGradientLegend.vue';
 import ChoroplethMap from '@/components/ChoroplethMap.vue';
 import Pinwheel from '@/components/Pinwheel.vue';
 import worldCountries from '@/assets/world_countries.json';
+import NodeRing from "@/components/NodeRing";
 
 const GTDProps = {
   height: {
@@ -86,7 +77,7 @@ const GTDProps = {
 
 export default {
   name: 'GTD',
-  components: { Pinwheel, ChoroplethMap, LinearGradientLegend },
+  components: {NodeRing, Pinwheel, ChoroplethMap, LinearGradientLegend},
   props: GTDProps,
   computed: {
     canvasWidth() {
@@ -95,40 +86,49 @@ export default {
     canvasHeight() {
       return this.height + this.margin.top + this.margin.bottom;
     },
-    minCasualties() {
-      return d3.min(Object.values(this.countries).map(c => c.totalCasualties));
+    mostFatal() {
+      return d3.max(Object.values(this.countries).map(c => c.mostFatal))
     },
-    maxCasualties() {
+    mostCasualties() {
       return d3.max(Object.values(this.countries).map(c => c.totalCasualties));
     },
-    pinwheels() {
-      const scale = d3.scaleSqrt()
-        .domain([0, this.maxCasualties])
-        .range([1, 5])
-      const minRadius = 50;
-      const countries = this.incidents
-                            .reduce((acc, incident) => {
-                              if(acc[ incident.city ] === 'Unknown') {
-                                return acc
-                              }
-                              const nkill = scale(incident.nkill) * minRadius
+    rings() {
+      const x = ((this.viewBox[1][0] - this.viewBox[0][0]) / 2) + this.viewBox[0][0]
+      const y = ((this.viewBox[1][1] - this.viewBox[0][1]) / 2) + this.viewBox[0][1]
+      const rings = [
+        {
+          center: {x, y},
+          r: 50,
+          label: '0 - 5 casualties',
+          nodes: [],
+        },
+        {
+          center: {x, y},
+          r: 250,
+          label: '6 - 25 casualties',
+          nodes: [],
+        },
+        {
+          center: {x, y},
+          r: 450,
+          label: '26+ casualties',
+          nodes: [],
+        },
+      ]
 
-                              if(acc[ incident.city ]) {
-                                acc[ incident.city ].r += nkill;
-                                acc[ incident.city ].points.push(incident);
-                              } else {
-                                acc[ incident.city ] = {
-                                  latitude: incident.latitude,
-                                  longitude: incident.longitude,
-                                  label: incident.city,
-                                  r: nkill,
-                                  points: [ incident ],
-                                };
-                              }
-
-                              return acc;
-                            }, {});
-      return Object.values(countries);
+      this.incidents.forEach(i => {
+        if (i.latitude && i.longitude) {
+          const r = i.nkill < 6 ? 0
+            : i.nkill < 26 ? 1
+              : 2
+          rings[r].nodes.push({
+            latitude: i.latitude,
+            longitude: i.longitude,
+            color: d3.schemeTableau10[Math.floor(Math.random() * 10)]
+          });
+        }
+      })
+      return rings;
     },
   },
   async created() {
@@ -139,8 +139,8 @@ export default {
     this.countries = await gtd.getCountries();
     this.$refs.gtdMap.draw();
     const zoom = d3.zoom()
-                   .scaleExtent([ 1, 8 ])
-                   .on('zoom', this.onZoom);
+      .scaleExtent([1, 8])
+      .on('zoom', this.onZoom);
     d3.select('svg').call(zoom)
   },
   data() {
@@ -150,7 +150,7 @@ export default {
       focused: false,
       incidents: [],
       k: 1,
-      center: {}
+      viewBox: [[0, 0], [0, 0]]
     };
   },
   methods: {
@@ -158,6 +158,7 @@ export default {
      * Colorize the choropleth map after rendering.
      */
     handleCreated({geometries}) {
+      this.viewBox = [[0, 0], [this.canvasWidth, this.canvasHeight]]
       this.colorize({geometries});
     },
     /**
@@ -171,11 +172,11 @@ export default {
           country: this.countries[id].name,
           minCasualties: 1,
         }).then((d) => {
-            this.incidents = d;
-          });
+          this.incidents = d;
+        });
         this.zoom(e);
         this.focused = e.target.id;
-      } else if(this.focused !== e.target.id) {
+      } else if (this.focused !== e.target.id) {
         this.reset();
       }
       e.stopPropagation();
@@ -186,12 +187,12 @@ export default {
     colorize({geometries}) {
       const colorScale = d3.scalePow()
         .exponent(this.exponent)
-        .domain([0, this.maxCasualties])
+        .domain([0, this.mostCasualties])
         .range([0, 1]);
 
       const transition = d3.transition()
-                           .duration(1050)
-                           .ease(d3.easeLinear);
+        .duration(1050)
+        .ease(d3.easeLinear);
 
       const countries = this.countries;
       geometries
@@ -210,17 +211,18 @@ export default {
      */
     zoom(e) {
       const features = worldCountries.features.filter((f) => f.id === e.target.id);
-      if(features.length < 1) {
+      if (features.length < 1) {
         return;
       }
-      const feature = features[ 0 ];
+      const feature = features[0];
       const transition = d3.transition()
-                           .duration(1050)
-                           .ease(d3.easeLinear);
+        .duration(1050)
+        .ease(d3.easeLinear);
       const zoom = d3.zoom()
-                     .scaleExtent([ 1, 8 ])
-                     .on('zoom', this.onZoom);
-      const [ [ x0, y0 ], [ x1, y1 ] ] = this.$refs.gtdMap.path.bounds(feature);
+        .scaleExtent([1, 8])
+        .on('zoom', this.onZoom);
+      this.viewBox = this.$refs.gtdMap.path.bounds(feature);
+      const [[x0, y0], [x1, y1]] = this.viewBox;
       const canvas = d3.select('#gtd-canvas');
       const zoomFactor = Math.max((x1 - x0) / this.width, (y1 - y0) / this.height);
       const scaleFactor = Math.min(8, 0.9 / zoomFactor);
@@ -228,37 +230,37 @@ export default {
       const yPrime = (y0 + y1) / -2;
 
       canvas.transition(transition)
-            .call(zoom.transform,
-                  d3.zoomIdentity.translate(this.width / 2, this.height / 2)
-                    .scale(scaleFactor)
-                    .translate(xPrime, yPrime))
-            .call((t, id) => {
-              d3.selectAll('.path.geometry')
-                .transition(t)
-                .style('opacity', (ele) => (ele.id === id ? '40%' : '10%'));
-            }, feature.id);
+        .call(zoom.transform,
+          d3.zoomIdentity.translate(this.width / 2, this.height / 2)
+            .scale(scaleFactor)
+            .translate(xPrime, yPrime))
+        .call((t, id) => {
+          d3.selectAll('.path.geometry')
+            .transition(t)
+            .style('opacity', (ele) => (ele.id === id ? '40%' : '10%'));
+        }, feature.id);
 
-      this.center = { x: ((x1 - x0) / 2) * x1, y: y1 + ((y1 - y0) / 2) }
+
     },
     /**
      * Reset zoom and opacity changes
      */
     unzoom() {
       const zoom = d3.zoom()
-                     .scaleExtent([ 1, 8 ])
-                     .on('zoom', this.onZoom);
+        .scaleExtent([1, 8])
+        .on('zoom', this.onZoom);
       const transition = d3.transition()
-                           .duration(1050)
-                           .ease(d3.easeLinear);
+        .duration(1050)
+        .ease(d3.easeLinear);
       const canvas = d3.select('#gtd-canvas');
 
       canvas.transition(transition)
-            .call(zoom.transform, d3.zoomIdentity)
-            .call((t) => {
-              d3.selectAll('.path.geometry')
-                .transition(t)
-                .style('opacity', '100%');
-            });
+        .call(zoom.transform, d3.zoomIdentity)
+        .call((t) => {
+          d3.selectAll('.path.geometry')
+            .transition(t)
+            .style('opacity', '100%');
+        });
     },
     /**
      * The actual zooming mechanism
@@ -270,8 +272,11 @@ export default {
       geometries.attr('transform', e.transform);
       geometries.attr('stroke-width', 1 / this.k);
 
-      d3.select('#gtd-pinwheels')
-        .attr('transform', e.transform)
+      d3.selectAll('#gtd-rings').attr('transform', e.transform)
+      d3.selectAll('.nodering.label').style('font-size', `${2 / this.k}em`)
+      d3.selectAll('.ring').attr('stroke-width', 5 / this.k)
+      d3.selectAll('.pin').attr('r', 10 / this.k)
+      d3.selectAll('.thread').attr('stroke-width', 2.5 / this.k)
     },
     /**
      * Reset the map and incidents when a user "unfocuses" a country
@@ -281,6 +286,7 @@ export default {
       this.unzoom();
       this.focused = false;
       this.incidents = [];
+      this.viewBox = [[0, 0], [this.canvasWidth, this.canvasHeight]]
     },
   },
 };

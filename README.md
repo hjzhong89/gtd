@@ -1,24 +1,23 @@
 # gtdex
 
-## Project setup
-```
-npm install
-```
+GTDEx is a visual exploration tool of the Global Terrorism Database.
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+## Pre-requisites
 
-### Compiles and minifies for production
-```
-npm run build
-```
+1. [Get NPM](https://www.npmjs.com/get-npm)
+1. Install the project
 
-### Lints and fixes files
-```
-npm run lint
-```
+    ```
+   cd gtdex
+   npm install
+    ```
+1. [Run the API Server](https://github.com/hjzhong89/gtdex-api/blob/master/README.md)
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+
+## Running the Application
+1. Follow all pre-requisites. Make sure the API server is running!
+1. Serve the application
+    ```
+    npm run serve
+    ```
+1. [Open in your browser](http://localhost:8080)
