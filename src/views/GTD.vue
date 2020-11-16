@@ -1,6 +1,7 @@
 <template>
   <div>
-    <h2>Title here</h2>
+    <h1>{{totalCasualties.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}} Casualties from Terrorism</h1>
+    <h4>({{minYear}} to {{maxYear}})</h4>
     <svg
       :height="canvasHeight"
       :width="canvasWidth"
@@ -32,13 +33,16 @@
                   :color="ring.color"
         ></NodeRing>
       </g>
-      <LinearGradientLegend v-if="!focused"
-                            id="gtd-key"
-                            :exponent="exponent"
-                            :min="0"
-                            :max="mostCasualties"
-                            :width="canvasWidth"
-      ></LinearGradientLegend>
+      <StackedBoxesLegend v-if="!focused"
+                          :x="margin.left"
+                          :y="(canvasHeight / 2) - margin.bottom"
+                          :height="canvasHeight / 2"
+                          :width="150"
+                          :exponent="exponent"
+                          :min="0"
+                          :max="mostCasualties"
+                          title="Casualties"
+      ></StackedBoxesLegend>
     </svg>
   </div>
 </template>
@@ -50,6 +54,7 @@ import ChoroplethMap from '@/components/ChoroplethMap.vue';
 import Pinwheel from '@/components/Pinwheel.vue';
 import worldCountries from '@/assets/world_countries.json';
 import NodeRing from "@/components/NodeRing";
+import StackedBoxesLegend from "@/components/StackedBoxesLegend";
 
 const GTDProps = {
   height: {
@@ -77,7 +82,7 @@ const GTDProps = {
 
 export default {
   name: 'GTD',
-  components: {NodeRing, Pinwheel, ChoroplethMap, LinearGradientLegend},
+  components: {StackedBoxesLegend, NodeRing, Pinwheel, ChoroplethMap, LinearGradientLegend},
   props: GTDProps,
   computed: {
     canvasWidth() {
@@ -91,6 +96,15 @@ export default {
     },
     mostCasualties() {
       return d3.max(Object.values(this.countries).map(c => c.totalCasualties));
+    },
+    totalCasualties() {
+      return Object.values(this.countries).reduce((total, c) => total + c.totalCasualties, 0)
+    },
+    minYear() {
+      return 1970
+    },
+    maxYear() {
+      return 2008
     },
     rings() {
       const x = ((this.viewBox[1][0] - this.viewBox[0][0]) / 2) + this.viewBox[0][0]
@@ -293,7 +307,7 @@ export default {
 </script>
 <style>
 .choropleth.canvas {
-  background-color: #2c3e50;
+  background-color: gray;
   overflow: hidden;
 }
 
