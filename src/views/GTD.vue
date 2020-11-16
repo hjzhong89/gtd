@@ -2,59 +2,47 @@
   <div>
     <h1>{{ totalCasualties.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }} Casualties from Terrorism</h1>
     <h4>({{ minYear }} to {{ maxYear }})</h4>
-    <svg
-      :height="canvasHeight"
-      :width="canvasWidth"
-      class="gtd choropleth canvas"
-      id="gtd-canvas"
-      @click="reset"
-    >
-      <ChoroplethMap id="gtd-map"
-                     :features="features"
-                     :canvas-width="width"
-                     :canvas-height="height"
-                     :x="margin.left"
-                     :y="margin.top"
-                     @created="handleCreated"
-                     @clicked="handleClicked"
-                     ref="gtdMap"
+    <div id="gtd-content">
+      <div id="side-panel" class="gtd-item">
+      </div>
+      <svg
+        :height="canvasHeight"
+        :width="canvasWidth"
+        class="gtd choropleth canvas gtd-item"
+        id="gtd-canvas"
+        @click="reset"
       >
-      </ChoroplethMap>
-      <g id="gtd-rings" v-if="focused">
-        <PinRing v-for="(ring,  i) in rings"
-                 v-if="ring.nodes.length > 0"
-                 :key="i"
-                 :id="ring.name"
-                 :center="ring.center"
-                 :r="ring.r / k"
-                 :label="ring.label"
-                 :nodes="ring.nodes"
-                 :canvas-width="width"
-                 :canvas-height="height"
-                 :margin="margin"
-                 :color="ring.color"
-        ></PinRing>
-      </g>
-      <StackedBoxesLegend v-if="!focused"
-                          :x="margin.left"
-                          :y="(canvasHeight / 2) - margin.bottom"
-                          :height="canvasHeight / 2"
-                          :width="150"
-                          :exponent="exponent"
-                          :min="0"
-                          :max="mostCasualties"
-                          title="Casualties"
-      ></StackedBoxesLegend>
-    </svg>
+        <ChoroplethMap id="gtd-map"
+                       :features="features"
+                       :canvas-width="width"
+                       :canvas-height="height"
+                       :x="margin.left"
+                       :y="margin.top"
+                       @created="handleCreated"
+                       @clicked="handleClicked"
+                       ref="gtdMap"
+        >
+        </ChoroplethMap>
+        <StackedBoxesLegend v-if="!focused"
+                            :x="margin.left"
+                            :y="(canvasHeight / 2) - margin.bottom"
+                            :height="canvasHeight / 2"
+                            :width="150"
+                            :exponent="exponent"
+                            :min="0"
+                            :max="mostCasualties"
+                            title="Casualties"
+        ></StackedBoxesLegend>
+      </svg>
+    </div>
+    <div class="spacer"></div>
   </div>
 </template>
 
 <script>
 import {GtdAPIClient as gtd} from '@/api/GTDClient';
-import LinearGradientLegend from '@/components/LinearGradientLegend.vue';
 import ChoroplethMap from '@/components/ChoroplethMap.vue';
 import worldCountries from '@/assets/world_countries.json';
-import PinRing from "@/components/PinRing";
 import StackedBoxesLegend from "@/components/StackedBoxesLegend";
 
 const GTDProps = {
@@ -83,7 +71,7 @@ const GTDProps = {
 
 export default {
   name: 'GTD',
-  components: {StackedBoxesLegend, PinRing, ChoroplethMap, LinearGradientLegend},
+  components: {StackedBoxesLegend, ChoroplethMap},
   props: GTDProps,
   computed: {
     canvasWidth() {
@@ -106,49 +94,6 @@ export default {
     },
     maxYear() {
       return 2008
-    },
-    rings() {
-      const centerX = this.viewBox[0][0] + ((this.viewBox[1][0] - this.viewBox[0][0]) / 2)
-      const centerY = this.viewBox[0][1] + ((this.viewBox[1][1] - this.viewBox[0][1]) / 2)
-      const x = centerX - 300 / this.k
-      const y = centerY + 300 / this.k
-      const rings = [
-        {
-          center: {x, y},
-          r: 50,
-          label: '0 - 5 casualties',
-          nodes: [],
-          name: 'ring-0'
-        },
-        {
-          center: {x, y},
-          r: 150,
-          label: '6 - 25 casualties',
-          nodes: [],
-          name: 'ring-1'
-        },
-        {
-          center: {x, y},
-          r: 250,
-          label: '26+ casualties',
-          nodes: [],
-          name: 'ring-2'
-        },
-      ]
-
-      this.incidents.forEach(i => {
-        if (i.latitude && i.longitude) {
-          const r = i.nkill < 6 ? 0
-            : i.nkill < 26 ? 1
-              : 2
-          rings[r].nodes.push({
-            latitude: i.latitude,
-            longitude: i.longitude,
-            color: d3.schemeTableau10[Math.floor(Math.random() * 10)]
-          });
-        }
-      })
-      return rings;
     },
   },
   async created() {
@@ -313,6 +258,19 @@ export default {
 };
 </script>
 <style>
+#gtd-content {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+.gtd-item {
+  margin: 0 10px
+}
+#side-panel {
+  width: 300px;
+  height: 900px;
+  background: #42b983;
+}
 .choropleth.canvas {
   background-color: #041b58;
   overflow: hidden;
@@ -344,5 +302,10 @@ text {
 #ring-2 .pin.anchor {
   stroke: #8A1894;
   fill: #8A1894;
+}
+
+.spacer {
+  width: 100%;
+  height: 25px;
 }
 </style>
