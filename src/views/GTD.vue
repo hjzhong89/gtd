@@ -28,6 +28,13 @@
                          ref="gtdMap"
           >
           </ChoroplethMap>
+          <PointGroup v-for="(group, i) in pointGroups"
+                      v-bind="group"
+                      :key="i"
+                      :canvas-width="width"
+                      :canvas-height="height"
+                      :margin="margin"
+          ></PointGroup>
           <StackedBoxesLegend v-if="!focused"
                               :x="margin.left"
                               :y="(canvasHeight / 2) - margin.bottom"
@@ -36,15 +43,8 @@
                               :exponent="exponent"
                               :min="0"
                               :max="mostCasualties"
-                              title="Casualties"
+                              title="Total Casualties"
           ></StackedBoxesLegend>
-          <PointGroup v-for="(group, i) in pointGroups"
-                      v-bind="group"
-                      :key="i"
-                      :canvas-width="width"
-                      :canvas-height="height"
-                      :margin="margin"
-          ></PointGroup>
         </svg>
       </div>
     </div>
@@ -280,7 +280,9 @@ export default {
             latitude: d.latitude,
             longitude: d.longitude,
             r: 10,
-            color: d3.schemeTableau10[i],
+            fill: d3.schemeTableau10[i],
+            stroke: 'black',
+            'stroke-width': '.5px',
           }
         });
         const group = {
@@ -327,7 +329,7 @@ export default {
 }
 
 svg text {
-  fill: white;
+  fill: black;
 }
 
 .resultcard .header {

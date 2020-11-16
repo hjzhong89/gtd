@@ -39,8 +39,7 @@ export default {
       return this.points.map(p => {
         const [cx, cy] = projection([p.longitude, p.latitude])
         return {
-          r: p.r,
-          fill: p.color,
+          ...p,
           cx,
           cy,
         }
