@@ -16,8 +16,9 @@ export type Incident = {
   [props: string]: any;
 }
 
-export type GetCountryOptions = {
-  countries?: Array<string>;
+export type GetOptions = {
+  country?: Array<string>;
+  year?: Array<number>,
   minCasualties?: number;
 }
 export type GetCountryRecord = {
@@ -26,27 +27,30 @@ export type GetCountryRecord = {
   incidents: Array<string>
 }
 
-export type GetIncidentsOptions = {
-  country?: string;
-  minCasualties?: number;
+export default interface GTDClient {
+  getCountries(opts: GetOptions): Promise<Map<string, GetCountryRecord>>;
+
+  getIncidents(opts: GetOptions): Promise<any>;
 }
 
-export default interface GTDClient {
-  getCountries(opts: GetCountryOptions): Promise<Map<string, GetCountryRecord>>;
-  getIncidents(opts: GetIncidentsOptions): Promise<any>;
-}
+const getQueryString = (opts: GetOptions) => {
+  const params = [];
+  if (opts.country) {
+    params.push(`country=${opts.country}`)
+  }
+  if (opts.year) {
+    params.push(`year=${opts.year}`)
+  }
+  if (opts.minCasualties) {
+    params.push(`minCasualties=${opts.minCasualties}`)
+  }
+  return params.length > 0 ? `?${params.join('&')}` : '';
+};
 
 export const GtdAPIClient: GTDClient = {
-  async getCountries(opts: GetCountryOptions = {}): Promise<any> {
-    const params = [];
-    if (opts.countries) {
-      params.push(`countries=${JSON.stringify(opts.countries)}`)
-    }
-    if (opts.minCasualties) {
-      params.push(`minCasualties=${opts.minCasualties}`)
-    }
-    const query = params.length > 0 ? `?${params.join('&')}` : ''
-    const url = encodeURI(`${uri}/country${query}`);
+  async getCountries(opts: GetOptions = {}): Promise<any> {
+    const query = getQueryString(opts);
+    const url = `${uri}/country${query}`;
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
@@ -56,17 +60,9 @@ export const GtdAPIClient: GTDClient = {
     });
     return response.json();
   },
-  async getIncidents(opts: GetIncidentsOptions = {}): Promise<Incident[]> {
-    const params = [];
-    if (opts.country) {
-      params.push(`country=${opts.country}`);
-    }
-    if (opts.minCasualties) {
-      params.push(`minCasualties=${opts.minCasualties}`)
-    }
-
-    const query = `${params.join('&')}`;
-    const url = encodeURI(`${uri}/incident?${query}`);
+  async getIncidents(opts: GetOptions = {}): Promise<Incident[]> {
+    const query = getQueryString(opts);
+    const url = encodeURI(`${uri}/incident${query}`);
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',

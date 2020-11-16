@@ -4,36 +4,49 @@
     <h4>({{ minYear }} to {{ maxYear }})</h4>
     <div id="gtd-content">
       <div id="side-panel" class="gtd-item">
+        <GTDQueryCard v-if="showQuery" @querySubmit="querySubmit"></GTDQueryCard>
+        <ResultCard v-for="(result, i) in results"
+                    :key="i"
+                    v-bind="result"></ResultCard>
       </div>
-      <svg
-        :height="canvasHeight"
-        :width="canvasWidth"
-        class="gtd choropleth canvas gtd-item"
-        id="gtd-canvas"
-        @click="reset"
-      >
-        <ChoroplethMap id="gtd-map"
-                       :features="features"
-                       :canvas-width="width"
-                       :canvas-height="height"
-                       :x="margin.left"
-                       :y="margin.top"
-                       @created="handleCreated"
-                       @clicked="handleClicked"
-                       ref="gtdMap"
+      <div id="map-panel" class="gtd-item">
+        <svg
+          :height="canvasHeight"
+          :width="canvasWidth"
+          class="gtd choropleth canvas"
+          id="gtd-canvas"
+          @click="reset"
         >
-        </ChoroplethMap>
-        <StackedBoxesLegend v-if="!focused"
-                            :x="margin.left"
-                            :y="(canvasHeight / 2) - margin.bottom"
-                            :height="canvasHeight / 2"
-                            :width="150"
-                            :exponent="exponent"
-                            :min="0"
-                            :max="mostCasualties"
-                            title="Casualties"
-        ></StackedBoxesLegend>
-      </svg>
+          <ChoroplethMap id="gtd-map"
+                         :features="features"
+                         :canvas-width="width"
+                         :canvas-height="height"
+                         :x="margin.left"
+                         :y="margin.top"
+                         @created="handleCreated"
+                         @clicked="handleClicked"
+                         ref="gtdMap"
+          >
+          </ChoroplethMap>
+          <StackedBoxesLegend v-if="!focused"
+                              :x="margin.left"
+                              :y="(canvasHeight / 2) - margin.bottom"
+                              :height="canvasHeight / 2"
+                              :width="150"
+                              :exponent="exponent"
+                              :min="0"
+                              :max="mostCasualties"
+                              title="Casualties"
+          ></StackedBoxesLegend>
+          <PointGroup v-for="(group, i) in pointGroups"
+                      v-bind="group"
+                      :key="i"
+                      :canvas-width="width"
+                      :canvas-height="height"
+                      :margin="margin"
+          ></PointGroup>
+        </svg>
+      </div>
     </div>
     <div class="spacer"></div>
   </div>
@@ -44,6 +57,9 @@ import {GtdAPIClient as gtd} from '@/api/GTDClient';
 import ChoroplethMap from '@/components/ChoroplethMap.vue';
 import worldCountries from '@/assets/world_countries.json';
 import StackedBoxesLegend from "@/components/StackedBoxesLegend";
+import GTDQueryCard from "@/components/GTDQueryCard";
+import ResultCard from "@/components/ResultCard";
+import PointGroup from "@/components/PointGroup";
 
 const GTDProps = {
   height: {
@@ -71,7 +87,7 @@ const GTDProps = {
 
 export default {
   name: 'GTD',
-  components: {StackedBoxesLegend, ChoroplethMap},
+  components: {PointGroup, ResultCard, GTDQueryCard, StackedBoxesLegend, ChoroplethMap},
   props: GTDProps,
   computed: {
     canvasWidth() {
@@ -93,7 +109,7 @@ export default {
       return 1970
     },
     maxYear() {
-      return 2008
+      return 1997
     },
   },
   async created() {
@@ -113,9 +129,10 @@ export default {
       countries: {},
       features: worldCountries.features,
       focused: false,
-      incidents: [],
       k: 1,
-      viewBox: [[0, 0], [0, 0]]
+      showQuery: true,
+      results: [],
+      pointGroups: [],
     };
   },
   methods: {
@@ -130,15 +147,7 @@ export default {
      * Handle onClick event when user clicks on a country
      */
     async handleClicked(e) {
-      const id = e.target.id;
-
       if (!this.focused) {
-        gtd.getIncidents({
-          country: this.countries[id].name,
-          minCasualties: 1,
-        }).then((d) => {
-          this.incidents = d;
-        });
         this.zoom(e);
         this.focused = e.target.id;
       } else if (this.focused !== e.target.id) {
@@ -236,13 +245,8 @@ export default {
       const geometries = d3.selectAll('.path.geometry');
       geometries.attr('transform', e.transform);
       geometries.attr('stroke-width', 1 / this.k);
-
-      d3.selectAll('#gtd-rings').attr('transform', e.transform)
-      d3.selectAll('.pinring.label').style('font-size', `${2 / this.k}em`)
-      d3.selectAll('.ring').attr('stroke-width', 5 / this.k)
-      d3.selectAll('.pin').attr('r', 10 / this.k)
-      d3.selectAll('.thread').attr('stroke-width', 2.5 / this.k)
-
+      d3.selectAll('.point-group')
+        .attr('transform', e.transform)
     },
     /**
      * Reset the map and incidents when a user "unfocuses" a country
@@ -251,8 +255,40 @@ export default {
       this.features = worldCountries.features;
       this.unzoom();
       this.focused = false;
-      this.incidents = [];
       this.viewBox = [[0, 0], [this.canvasWidth, this.canvasHeight]]
+    },
+    querySubmit(e, query) {
+      const params = {
+        country: query.country === 'All' ? undefined : query.country,
+        year: query.year === 'All' ? undefined : query.year,
+        minCasualties: query.minCasualties,
+      }
+      gtd.getCountries(params).then(data => {
+        const i = this.results.length
+        const result = {
+          name: query.name,
+          countries: data,
+          color: d3.schemeTableau10[i]
+        }
+        this.results.push(result)
+      });
+
+      gtd.getIncidents(params).then(data => {
+        const i = this.pointGroups.length
+        const points = data.map(d => {
+          return {
+            latitude: d.latitude,
+            longitude: d.longitude,
+            r: 10,
+            color: d3.schemeTableau10[i],
+          }
+        });
+        const group = {
+          name: query.name,
+          points: points,
+        }
+        this.pointGroups.push(group);
+      });
     },
   },
 };
@@ -263,49 +299,41 @@ export default {
   flex-direction: row;
   justify-content: center;
 }
+
 .gtd-item {
   margin: 0 10px
 }
+
 #side-panel {
   width: 300px;
   height: 900px;
-  background: #42b983;
+  display: flex;
+  flex-direction: column;
 }
+
+#side-panel div {
+  margin: 6px;
+}
+
 .choropleth.canvas {
-  background-color: #041b58;
+  background-color: #a1b6ec;
   overflow: hidden;
   border-radius: 15px;
-}
-.pin {
-  fill: #42b983;
-}
-text {
-  fill: white;
-}
-#ring-0 .thread, #ring-0 .ring {
-  stroke: #E6A4EB;
-}
-#ring-0 .pin.anchor {
-  stroke: #E6A4EB;
-  fill: #E6A4EB;
-}
-#ring-1 .thread, #ring-1 .ring {
-  stroke: #CF3BDD;
-}
-#ring-1 .pin.anchor {
-  stroke: #CF3BDD;
-  fill: #CF3BDD;
-}
-#ring-2 .thread, #ring-2 .ring {
-  stroke: #8A1894;
-}
-#ring-2 .pin.anchor {
-  stroke: #8A1894;
-  fill: #8A1894;
 }
 
 .spacer {
   width: 100%;
   height: 25px;
+}
+
+svg text {
+  fill: white;
+}
+
+.resultcard .header {
+  color: white;
+  text-align: center;
+  font-size: 1.25em;
+
 }
 </style>
