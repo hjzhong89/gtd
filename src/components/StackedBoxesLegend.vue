@@ -82,7 +82,7 @@ export default {
       const offsetX = that.x + 15
       const offsetY = that.y + 15
       return keys.map((k, i) => {
-        const label = k
+        const label = k.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
         return {
           x: offsetX,
           y: offsetY + ((keys.length-1) * keyHeight) - (i * keyHeight),

@@ -1,7 +1,7 @@
 <template>
   <div>
-    <h1>{{totalCasualties.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}} Casualties from Terrorism</h1>
-    <h4>({{minYear}} to {{maxYear}})</h4>
+    <h1>{{ totalCasualties.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }} Casualties from Terrorism</h1>
+    <h4>({{ minYear }} to {{ maxYear }})</h4>
     <svg
       :height="canvasHeight"
       :width="canvasWidth"
@@ -21,17 +21,19 @@
       >
       </ChoroplethMap>
       <g id="gtd-rings" v-if="focused">
-        <NodeRing v-for="(ring,  i) in rings"
-                  :key="i"
-                  :center="ring.center"
-                  :r="ring.r / k"
-                  :label="ring.label"
-                  :nodes="ring.nodes"
-                  :canvas-width="width"
-                  :canvas-height="height"
-                  :margin="margin"
-                  :color="ring.color"
-        ></NodeRing>
+        <PinRing v-for="(ring,  i) in rings"
+                 v-if="ring.nodes.length > 0"
+                 :key="i"
+                 :id="ring.name"
+                 :center="ring.center"
+                 :r="ring.r / k"
+                 :label="ring.label"
+                 :nodes="ring.nodes"
+                 :canvas-width="width"
+                 :canvas-height="height"
+                 :margin="margin"
+                 :color="ring.color"
+        ></PinRing>
       </g>
       <StackedBoxesLegend v-if="!focused"
                           :x="margin.left"
@@ -51,9 +53,8 @@
 import {GtdAPIClient as gtd} from '@/api/GTDClient';
 import LinearGradientLegend from '@/components/LinearGradientLegend.vue';
 import ChoroplethMap from '@/components/ChoroplethMap.vue';
-import Pinwheel from '@/components/Pinwheel.vue';
 import worldCountries from '@/assets/world_countries.json';
-import NodeRing from "@/components/NodeRing";
+import PinRing from "@/components/PinRing";
 import StackedBoxesLegend from "@/components/StackedBoxesLegend";
 
 const GTDProps = {
@@ -82,7 +83,7 @@ const GTDProps = {
 
 export default {
   name: 'GTD',
-  components: {StackedBoxesLegend, NodeRing, Pinwheel, ChoroplethMap, LinearGradientLegend},
+  components: {StackedBoxesLegend, PinRing, ChoroplethMap, LinearGradientLegend},
   props: GTDProps,
   computed: {
     canvasWidth() {
@@ -107,26 +108,31 @@ export default {
       return 2008
     },
     rings() {
-      const x = this.viewBox[0][0] + this.margin.left
-      const y = this.viewBox[1][1] - this.margin.bottom
+      const centerX = this.viewBox[0][0] + ((this.viewBox[1][0] - this.viewBox[0][0]) / 2)
+      const centerY = this.viewBox[0][1] + ((this.viewBox[1][1] - this.viewBox[0][1]) / 2)
+      const x = centerX - 300 / this.k
+      const y = centerY + 300 / this.k
       const rings = [
         {
           center: {x, y},
           r: 50,
           label: '0 - 5 casualties',
           nodes: [],
+          name: 'ring-0'
         },
         {
           center: {x, y},
           r: 150,
           label: '6 - 25 casualties',
           nodes: [],
+          name: 'ring-1'
         },
         {
           center: {x, y},
           r: 250,
           label: '26+ casualties',
           nodes: [],
+          name: 'ring-2'
         },
       ]
 
@@ -287,10 +293,11 @@ export default {
       geometries.attr('stroke-width', 1 / this.k);
 
       d3.selectAll('#gtd-rings').attr('transform', e.transform)
-      d3.selectAll('.nodering.label').style('font-size', `${2 / this.k}em`)
+      d3.selectAll('.pinring.label').style('font-size', `${2 / this.k}em`)
       d3.selectAll('.ring').attr('stroke-width', 5 / this.k)
       d3.selectAll('.pin').attr('r', 10 / this.k)
       d3.selectAll('.thread').attr('stroke-width', 2.5 / this.k)
+
     },
     /**
      * Reset the map and incidents when a user "unfocuses" a country
@@ -307,11 +314,35 @@ export default {
 </script>
 <style>
 .choropleth.canvas {
-  background-color: gray;
+  background-color: #041b58;
   overflow: hidden;
+  border-radius: 15px;
 }
-
-.linear-gradient-legend text {
-  font-weight: bold;
+.pin {
+  fill: #42b983;
+}
+text {
+  fill: white;
+}
+#ring-0 .thread, #ring-0 .ring {
+  stroke: #E6A4EB;
+}
+#ring-0 .pin.anchor {
+  stroke: #E6A4EB;
+  fill: #E6A4EB;
+}
+#ring-1 .thread, #ring-1 .ring {
+  stroke: #CF3BDD;
+}
+#ring-1 .pin.anchor {
+  stroke: #CF3BDD;
+  fill: #CF3BDD;
+}
+#ring-2 .thread, #ring-2 .ring {
+  stroke: #8A1894;
+}
+#ring-2 .pin.anchor {
+  stroke: #8A1894;
+  fill: #8A1894;
 }
 </style>

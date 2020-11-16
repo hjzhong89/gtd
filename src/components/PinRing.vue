@@ -1,5 +1,5 @@
 <template>
-  <g class="nodering">
+  <g class="pinring">
     <g v-for="pin in pins">
       <path :d="pin.d"
             :stroke="pin.color"
@@ -17,7 +17,7 @@
             :cy="center.y"
             fill="none"
             stroke="black"
-            stroke-width="5px"
+            stroke-width="8px"
             class="ring"
     ></circle>
     <g v-for="pin in pins">
@@ -29,7 +29,7 @@
     </g>
     <text :x="center.x"
           :y="center.y - r"
-          class="nodering label"
+          class="pinring label"
     >{{ label }}
     </text>
   </g>
@@ -37,7 +37,7 @@
 <script>
 const tau = Math.PI * 2;
 export default {
-  name: 'NodeRing',
+  name: 'PinRing',
   props: {
     center: {
       type: Object,
@@ -107,7 +107,7 @@ export default {
 }
 </script>
 <style>
-.nodering.label {
+.pinring.label {
   font-size: 2em;
   font-weight: bold;
   text-anchor: middle;
