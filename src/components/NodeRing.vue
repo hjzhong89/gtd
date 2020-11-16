@@ -112,4 +112,7 @@ export default {
   font-weight: bold;
   text-anchor: middle;
 }
+.thread {
+  opacity: 75%
+}
 </style>

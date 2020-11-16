@@ -107,8 +107,8 @@ export default {
       return 2008
     },
     rings() {
-      const x = ((this.viewBox[1][0] - this.viewBox[0][0]) / 2) + this.viewBox[0][0]
-      const y = ((this.viewBox[1][1] - this.viewBox[0][1]) / 2) + this.viewBox[0][1]
+      const x = this.viewBox[0][0] + this.margin.left
+      const y = this.viewBox[1][1] - this.margin.bottom
       const rings = [
         {
           center: {x, y},
@@ -118,13 +118,13 @@ export default {
         },
         {
           center: {x, y},
-          r: 250,
+          r: 150,
           label: '6 - 25 casualties',
           nodes: [],
         },
         {
           center: {x, y},
-          r: 450,
+          r: 250,
           label: '26+ casualties',
           nodes: [],
         },
