@@ -4,9 +4,10 @@
     <h4>({{ minYear }} to {{ maxYear }})</h4>
     <div id="gtd-content">
       <div id="side-panel" class="gtd-item">
-        <GTDQueryCard v-if="showQuery"
-                      name="querycard"
-                      @querySubmit="querySubmit"></GTDQueryCard>
+        <QueryCard v-if="showQuery"
+                   class="margin-bottom-small"
+                   name="querycard"
+                   @querySubmit="querySubmit"></QueryCard>
         <ResultCard v-for="(result, i) in results"
                     :key="i"
                     v-bind="result"></ResultCard>
@@ -55,11 +56,11 @@
 </template>
 
 <script>
-import {GtdAPIClient as gtd} from '@/api/GTDClient';
+import { GtdAPIClient as gtd } from '@/api/GTDClient';
 import ChoroplethMap from '@/components/ChoroplethMap.vue';
 import worldCountries from '@/assets/world_countries.json';
 import StackedBoxesLegend from "@/components/StackedBoxesLegend";
-import GTDQueryCard from "@/components/GTDQueryCard";
+import QueryCard from "@/components/QueryCard";
 import ResultCard from "@/components/ResultCard";
 import PointGroup from "@/components/PointGroup";
 
@@ -89,7 +90,7 @@ const GTDProps = {
 
 export default {
   name: 'GTD',
-  components: {PointGroup, ResultCard, GTDQueryCard, StackedBoxesLegend, ChoroplethMap},
+  components: { PointGroup, ResultCard, QueryCard, StackedBoxesLegend, ChoroplethMap },
   props: GTDProps,
   computed: {
     canvasWidth() {
@@ -122,8 +123,8 @@ export default {
     this.countries = await gtd.getCountries();
     this.$refs.gtdMap.draw();
     const zoom = d3.zoom()
-      .scaleExtent([1, 8])
-      .on('zoom', this.onZoom);
+                   .scaleExtent([ 1, 8 ])
+                   .on('zoom', this.onZoom);
     d3.select('svg').call(zoom)
   },
   data() {
@@ -141,18 +142,18 @@ export default {
     /**
      * Colorize the choropleth map after rendering.
      */
-    handleCreated({geometries}) {
-      this.viewBox = [[0, 0], [this.canvasWidth, this.canvasHeight]]
-      this.colorize({geometries});
+    handleCreated({ geometries }) {
+      this.viewBox = [ [ 0, 0 ], [ this.canvasWidth, this.canvasHeight ] ]
+      this.colorize({ geometries });
     },
     /**
      * Handle onClick event when user clicks on a country
      */
     async handleClicked(e) {
-      if (!this.focused) {
+      if(!this.focused) {
         this.zoom(e);
         this.focused = e.target.id;
-      } else if (this.focused !== e.target.id) {
+      } else if(this.focused !== e.target.id) {
         this.reset();
       }
       e.stopPropagation();
@@ -160,21 +161,21 @@ export default {
     /**
      * Colorize the countries by the number of casualties in that country from terrorism
      */
-    colorize({geometries}) {
+    colorize({ geometries }) {
       const colorScale = d3.scalePow()
-        .exponent(this.exponent)
-        .domain([0, this.mostCasualties])
-        .range([0, 1]);
+                           .exponent(this.exponent)
+                           .domain([ 0, this.mostCasualties ])
+                           .range([ 0, 1 ]);
 
       const transition = d3.transition()
-        .duration(1050)
-        .ease(d3.easeLinear);
+                           .duration(1050)
+                           .ease(d3.easeLinear);
 
       const countries = this.countries;
       geometries
         .transition(transition)
-        .attr('fill', function (e) {
-          const count = countries[e.id] ? countries[e.id].totalCasualties : 0;
+        .attr('fill', function(e) {
+          const count = countries[ e.id ] ? countries[ e.id ].totalCasualties : 0;
           const val = colorScale(count);
           return d3.interpolateReds(val);
         });
@@ -187,18 +188,18 @@ export default {
      */
     zoom(e) {
       const features = worldCountries.features.filter((f) => f.id === e.target.id);
-      if (features.length < 1) {
+      if(features.length < 1) {
         return;
       }
-      const feature = features[0];
+      const feature = features[ 0 ];
       const transition = d3.transition()
-        .duration(1050)
-        .ease(d3.easeLinear);
+                           .duration(1050)
+                           .ease(d3.easeLinear);
       const zoom = d3.zoom()
-        .scaleExtent([1, 8])
-        .on('zoom', this.onZoom);
+                     .scaleExtent([ 1, 8 ])
+                     .on('zoom', this.onZoom);
       this.viewBox = this.$refs.gtdMap.path.bounds(feature);
-      const [[x0, y0], [x1, y1]] = this.viewBox;
+      const [ [ x0, y0 ], [ x1, y1 ] ] = this.viewBox;
       const canvas = d3.select('#gtd-canvas');
       const zoomFactor = Math.max((x1 - x0) / this.width, (y1 - y0) / this.height);
       const scaleFactor = Math.min(8, 0.9 / zoomFactor);
@@ -206,15 +207,15 @@ export default {
       const yPrime = (y0 + y1) / -2;
 
       canvas.transition(transition)
-        .call(zoom.transform,
-          d3.zoomIdentity.translate(this.width / 2, this.height / 2)
-            .scale(scaleFactor)
-            .translate(xPrime, yPrime))
-        .call((t, id) => {
-          d3.selectAll('.path.geometry')
-            .transition(t)
-            .style('opacity', (ele) => (ele.id === id ? '40%' : '10%'));
-        }, feature.id);
+            .call(zoom.transform,
+                  d3.zoomIdentity.translate(this.width / 2, this.height / 2)
+                    .scale(scaleFactor)
+                    .translate(xPrime, yPrime))
+            .call((t, id) => {
+              d3.selectAll('.path.geometry')
+                .transition(t)
+                .style('opacity', (ele) => (ele.id === id ? '40%' : '10%'));
+            }, feature.id);
 
 
     },
@@ -223,20 +224,20 @@ export default {
      */
     unzoom() {
       const zoom = d3.zoom()
-        .scaleExtent([1, 8])
-        .on('zoom', this.onZoom);
+                     .scaleExtent([ 1, 8 ])
+                     .on('zoom', this.onZoom);
       const transition = d3.transition()
-        .duration(1050)
-        .ease(d3.easeLinear);
+                           .duration(1050)
+                           .ease(d3.easeLinear);
       const canvas = d3.select('#gtd-canvas');
 
       canvas.transition(transition)
-        .call(zoom.transform, d3.zoomIdentity)
-        .call((t) => {
-          d3.selectAll('.path.geometry')
-            .transition(t)
-            .style('opacity', '100%');
-        });
+            .call(zoom.transform, d3.zoomIdentity)
+            .call((t) => {
+              d3.selectAll('.path.geometry')
+                .transition(t)
+                .style('opacity', '100%');
+            });
     },
     /**
      * The actual zooming mechanism
@@ -249,7 +250,9 @@ export default {
       geometries.attr('stroke-width', 1 / this.k);
       d3.selectAll('.point-group')
         .attr('transform', e.transform)
-        .attr('r', 5 / this.k);
+      d3.selectAll('.point')
+        .attr('r', 5 / this.k)
+        .attr('stroke-width', 1 / this.k)
     },
     /**
      * Reset the map and incidents when a user "unfocuses" a country
@@ -258,7 +261,7 @@ export default {
       this.features = worldCountries.features;
       this.unzoom();
       this.focused = false;
-      this.viewBox = [[0, 0], [this.canvasWidth, this.canvasHeight]]
+      this.viewBox = [ [ 0, 0 ], [ this.canvasWidth, this.canvasHeight ] ]
     },
     querySubmit(e, query) {
       console.log(query)
@@ -273,7 +276,7 @@ export default {
         const result = {
           name: query.title,
           countries: data,
-          color: d3.schemeTableau10[i]
+          color: d3.schemeTableau10[ i ]
         }
         this.results.push(result)
       });
@@ -285,7 +288,7 @@ export default {
             latitude: d.latitude,
             longitude: d.longitude,
             r: 5,
-            fill: d3.schemeTableau10[i],
+            fill: d3.schemeTableau10[ i ],
             stroke: 'black',
             'stroke-width': '.5px',
           }
@@ -298,7 +301,7 @@ export default {
       });
     },
     formatNumber(f) {
-      return f    .toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+      return f.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
     },
   },
 };

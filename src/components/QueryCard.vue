@@ -111,7 +111,7 @@ import {MDCSlider} from "@material/slider/component";
 import {MDCSwitch} from "@material/switch/component";
 
 export default {
-  name: 'GTDQueryCard',
+  name: 'QueryCard',
   components: {CardControl},
   props: {
     name: {
@@ -143,7 +143,7 @@ export default {
   },
   data() {
     return {
-      title: 'Global Fatal Incidents - 1970 to 1975',
+      title: 'Query 1',
       country: 'All',
       startYear: 1970,
       endYear: 1997,

@@ -1,35 +1,50 @@
 <template>
-  <CardControl>
+  <CardControl class="margin-bottom-small">
     <div class="resultcard"
          :width="width"
          :height="height">
-      <div class="header" :style="`background: ${color}`">{{name}}</div>
-      <form class="">
-        <div class=" total-incidents">
-          <label>Total Incidents</label>
-          <input type="text" :value="formatNumber(totalIncidents)"
-                 readonly>
+      <div class="mdc-data-table .results-table" :style="`width: ${width}`">
+        <div class="mdc-data-table__table-container" :style="`width: ${width}`">
+          <table class="mdc-data-table__table" aria-label="Incident Statistics" :style="`width: ${width}`">
+            <thead>
+            <tr class="mdc-data-table__header-row">
+              <th class="mdc-data-table__header-cell header"
+                  role="columnheader" scope="col"
+                  :style="`background-color: ${color}; color: white;`"
+              >{{ name }}
+              </th>
+              <th class="mdc-data-table__header-cell"
+                  role="columnheader" scope="col"
+                  :style="`background-color: ${color}; color: white;`"
+              ></th>
+            </tr>
+            </thead>
+            <tbody class="mdc-data-table__content">
+            <tr class="mdc-data-table__row">
+              <td class="mdc-data-table__cell mdc-data-table__cell">Total Incidents</td>
+              <td class="mdc-data-table__cell mdc-data-table__cell--numeric">{{ formatNumber(totalIncidents) }}</td>
+            </tr>
+            <tr class="mdc-data-table__row">
+              <td class="mdc-data-table__cell mdc-data-table__cell">Total Casualties</td>
+              <td class="mdc-data-table__cell mdc-data-table__cell--numeric">{{ formatNumber(totalCasualties) }}</td>
+            </tr>
+            <tr class="mdc-data-table__row">
+              <td class="mdc-data-table__cell mdc-data-table__cell">Avg Casualt</td>
+              <td class="mdc-data-table__cell mdc-data-table__cell--numeric">{{ formatNumber(casualtyAvg) }}</td>
+            </tr>
+            </tbody>
+          </table>
         </div>
-
-        <div class=" total-casualties">
-          <label>Total Casualties</label>
-          <input type="text" :value="formatNumber(totalCasualties)" readonly>
-        </div>
-
-        <div class=" total-casualties">
-          <label>Average Casualties per Incident</label>
-          <input type="text" :value="casualtyAvg" readonly>
-        </div>
-
-      </form>
+      </div>
     </div>
   </CardControl>
 </template>
 <script>
 import CardControl from "@/components/CardControl";
+
 export default {
   name: 'ResultCard',
-  components: {CardControl},
+  components: { CardControl },
   props: {
     width: {
       type: String,
@@ -68,7 +83,7 @@ export default {
       }, 0);
     },
     casualtyAvg() {
-      if (this.totalIncidents) {
+      if(this.totalIncidents) {
         return (this.totalCasualties / this.totalIncidents).toFixed(2)
       } else {
         return 0.00
@@ -82,10 +97,14 @@ export default {
   }
 }
 </script>
-<style>
-.resultcard .header {
-  align-items: start;
-  text-align: left;
-  font-size: 1.5em;
+<style lang="scss">
+@use "~@material/data-table/data-table";
+
+@include data-table.core-styles;
+@include data-table.theme-baseline;
+
+.header {
+  overflow: visible;
+  text-overflow: unset;
 }
 </style>
