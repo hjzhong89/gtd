@@ -4,7 +4,9 @@
     <h4>({{ minYear }} to {{ maxYear }})</h4>
     <div id="gtd-content">
       <div id="side-panel" class="gtd-item">
-        <GTDQueryCard v-if="showQuery" @querySubmit="querySubmit"></GTDQueryCard>
+        <GTDQueryCard v-if="showQuery"
+                      name="querycard"
+                      @querySubmit="querySubmit"></GTDQueryCard>
         <ResultCard v-for="(result, i) in results"
                     :key="i"
                     v-bind="result"></ResultCard>
@@ -259,15 +261,17 @@ export default {
       this.viewBox = [[0, 0], [this.canvasWidth, this.canvasHeight]]
     },
     querySubmit(e, query) {
+      console.log(query)
       const params = {
         country: query.country === 'All' ? undefined : query.country,
-        year: query.year === 'All' ? undefined : query.year,
-        minCasualties: query.minCasualties,
+        startYear: query.startYear,
+        endYear: query.endYear,
+        minCasualties: query.showNonFatal ? 0 : 1,
       }
       gtd.getCountries(params).then(data => {
         const i = this.results.length
         const result = {
-          name: query.name,
+          name: query.title,
           countries: data,
           color: d3.schemeTableau10[i]
         }

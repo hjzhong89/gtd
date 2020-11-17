@@ -41,10 +41,10 @@
                aria-label="Year"
                :aria-valuemin="minYear"
                :aria-valuemax="maxYear"
-               :aria-valuenow="startYear">
+               :aria-valuenow="minYear">
             <div class="mdc-slider__value-indicator-container">
               <div class="mdc-slider__value-indicator">
-        <span class="mdc-slider__value-indicator-text">
+        <span :class="`mdc-slider__value-indicator-text startYear-${name}`">
           {{ minYear }}
         </span>
               </div>
@@ -57,11 +57,11 @@
                aria-label="Year"
                :aria-valuemin="minYear"
                :aria-valuemax="maxYear"
-               :aria-valuenow="endYear">
+               :aria-valuenow="maxYear">
             <div class="mdc-slider__value-indicator-container">
               <div class="mdc-slider__value-indicator">
-        <span class="mdc-slider__value-indicator-text">
-          {{ minYear + 5 }}
+        <span :class="`mdc-slider__value-indicator-text endYear-${name}`">
+          {{ maxYear }}
         </span>
               </div>
             </div>
@@ -82,7 +82,9 @@
             <input type="checkbox" :id="`fatal-switch-${name}`"
                    class="mdc-switch__native-control"
                    role="switch"
-                   aria-checked="false">
+                   aria-checked="false"
+                   v-model="showNonFatal"
+            >
           </div>
         </div>
 
@@ -141,11 +143,11 @@ export default {
   },
   data() {
     return {
-      title: 'Global Fatal Incidents - 1970',
+      title: 'Global Fatal Incidents - 1970 to 1975',
       country: 'All',
       startYear: 1970,
-      endYear: 1975,
-      minCasualties: 1,
+      endYear: 1997,
+      showNonFatal: false,
     }
   },
   mounted() {
@@ -157,6 +159,8 @@ export default {
   methods: {
     submit(e) {
       e.preventDefault();
+      this.startYear = parseInt(d3.select(`.startYear-${this.name}`).text())
+      this.endYear = parseInt(d3.select(`.endYear-${this.name}`).text())
       this.$emit('querySubmit', e, this);
     }
   },

@@ -17,8 +17,9 @@ export type Incident = {
 }
 
 export type GetOptions = {
-  country?: Array<string>;
-  year?: Array<number>,
+  country?: string;
+  startYear?: number,
+  endYear?: number
   minCasualties?: number;
 }
 export type GetCountryRecord = {
@@ -38,8 +39,11 @@ const getQueryString = (opts: GetOptions) => {
   if (opts.country) {
     params.push(`country=${opts.country}`)
   }
-  if (opts.year) {
-    params.push(`year=${opts.year}`)
+  if (opts.startYear) {
+    params.push(`startYear=${opts.startYear}`)
+  }
+  if (opts.endYear) {
+    params.push(`endYear=${opts.endYear}`)
   }
   if (opts.minCasualties) {
     params.push(`minCasualties=${opts.minCasualties}`)
