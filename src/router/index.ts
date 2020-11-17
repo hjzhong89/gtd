@@ -9,6 +9,10 @@ const routes: Array<RouteConfig> = [
     path: '/',
     name: 'GTD',
     component: GTD,
+    props: {
+      height: 600,
+      width: 800,
+    },
   },
 ];
 

@@ -1,31 +1,35 @@
 <template>
-  <div class="resultcard"
-       :width="width"
-       :height="height">
-    <div class="header" :style="`background: ${color}`">{{name}}</div>
-    <form class="mui-form">
-      <div class="mui-textfield total-incidents">
-        <label>Total Incidents</label>
-        <input type="text" :value="formatNumber(totalIncidents)"
-               readonly>
-      </div>
+  <CardControl>
+    <div class="resultcard"
+         :width="width"
+         :height="height">
+      <div class="header" :style="`background: ${color}`">{{name}}</div>
+      <form class="">
+        <div class=" total-incidents">
+          <label>Total Incidents</label>
+          <input type="text" :value="formatNumber(totalIncidents)"
+                 readonly>
+        </div>
 
-      <div class="mui-textfield total-casualties">
-        <label>Total Casualties</label>
-        <input type="text" :value="formatNumber(totalCasualties)" readonly>
-      </div>
+        <div class=" total-casualties">
+          <label>Total Casualties</label>
+          <input type="text" :value="formatNumber(totalCasualties)" readonly>
+        </div>
 
-      <div class="mui-textfield total-casualties">
-        <label>Average Casualties per Incident</label>
-        <input type="text" :value="casualtyAvg" readonly>
-      </div>
+        <div class=" total-casualties">
+          <label>Average Casualties per Incident</label>
+          <input type="text" :value="casualtyAvg" readonly>
+        </div>
 
-    </form>
-  </div>
+      </form>
+    </div>
+  </CardControl>
 </template>
 <script>
+import CardControl from "@/components/CardControl";
 export default {
   name: 'ResultCard',
+  components: {CardControl},
   props: {
     width: {
       type: String,

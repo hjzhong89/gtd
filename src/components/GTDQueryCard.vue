@@ -1,41 +1,121 @@
 <template>
-  <div class="querycard"
-       :width="width"
-       :height="height"
-  >
-    <form class="mui-form">
-      <legend>Explore Incidents</legend>
+  <CardControl :classs="'querycard'"
+               :width="width"
+               :height="height">
+    <form style="width: 100%" class="querycard form">
+      <div class="query-title margin-bottom">
+        <label class="mdc-text-field mdc-text-field--filled title">
+          <span class="mdc-text-field__ripple"></span>
+          <input type="text"
+                 class="mdc-text-field__input"
+                 aria-labelledby="title-label"
+                 name="title"
+                 v-model="title"
+                 required
+          >
+          <span class="mdc-floating-label title-label">Title</span>
+          <span class="mdc-line-ripple"></span>
+        </label>
+      </div>
 
-      <div class="mui-textfield query-name">
-        <label :for="`${name}-query-title`">Name</label>
-        <input type="text" placeholder="Query Name" v-model="name" maxlength="50">
+      <div class="query-country margin-bottom">
+        <label>
+          Country
+          <select v-model="country">
+            <option v-for="(country, i) in countryNames" :key="i">{{ country }}</option>
+          </select>
+        </label>
       </div>
-      <div class="mui-select query-country">
-        <label>Country</label>
-        <select v-model="country">
-          <option v-for="(country, i) in countryNames" :key="i">{{ country }}</option>
-        </select>
+
+      <div class="query-years margin-bottom">
+        <label>Incident Year</label>
+        <div class="year-slider mdc-slider mdc-slider--range mdc-slider--discrete" data-step="1">
+          <div class="mdc-slider__track">
+            <div class="mdc-slider__track--inactive"></div>
+            <div class="mdc-slider__track--active">
+              <div class="mdc-slider__track--active_fill"></div>
+            </div>
+          </div>
+          <div class="mdc-slider__thumb"
+               role="slider" tabindex="0"
+               aria-label="Year"
+               :aria-valuemin="minYear"
+               :aria-valuemax="maxYear"
+               :aria-valuenow="startYear">
+            <div class="mdc-slider__value-indicator-container">
+              <div class="mdc-slider__value-indicator">
+        <span class="mdc-slider__value-indicator-text">
+          {{ minYear }}
+        </span>
+              </div>
+            </div>
+            <div class="mdc-slider__thumb-knob"></div>
+          </div>
+          <div class="mdc-slider__thumb"
+               role="slider"
+               tabindex="0"
+               aria-label="Year"
+               :aria-valuemin="minYear"
+               :aria-valuemax="maxYear"
+               :aria-valuenow="endYear">
+            <div class="mdc-slider__value-indicator-container">
+              <div class="mdc-slider__value-indicator">
+        <span class="mdc-slider__value-indicator-text">
+          {{ minYear + 5 }}
+        </span>
+              </div>
+            </div>
+            <div class="mdc-slider__thumb-knob"></div>
+          </div>
+        </div>
+        <div class="year-labels">
+          <label>{{minYear}}</label><label>{{maxYear}}</label>
+        </div>
       </div>
-      <div class="mui-select query-year">
-        <label>Year</label>
-        <select v-model="year">
-          <option v-for="(year, i) in years" :key="i">{{ year }}</option>
-        </select>
+
+      <div class="query-fatal-only margin-bottom">
+        <label :for="`fatal-switch-${name}`" class="margin-right">Show Non-Fatal</label>
+        <div class="fatal-switch mdc-switch">
+          <div class="mdc-switch__track"></div>
+          <div class="mdc-switch__thumb-underlay">
+            <div class="mdc-switch__thumb"></div>
+            <input type="checkbox" :id="`fatal-switch-${name}`"
+                   class="mdc-switch__native-control"
+                   role="switch"
+                   aria-checked="false">
+          </div>
+        </div>
+
       </div>
-      <div class="mui-textfield minimum-casualties">
-        <label>Minimum Casualties</label>
-        <input type="text" v-model="minCasualties" >
+
+      <div class="query-submit margin-bottom">
+        <div class="mdc-touch-target-wrapper query-btn" @click="submit">
+          <button class="query-btn mdc-button mdc-button--touch">
+            <div class="mdc-button__ripple"></div>
+            <span class="mdc-button__label">Query</span>
+            <div class="mdc-button__touch"></div>
+          </button>
+        </div>
       </div>
-      <button @click="submit" class="mui-btn mui-btn--raised">Submit</button>
     </form>
-  </div>
+  </CardControl>
 </template>
 <script>
 import worldCountries from '@/assets/world_countries.json';
+import CardControl from "@/components/CardControl";
+import {MDCTextField} from "@material/textfield/component";
+import {MDCRipple} from "@material/ripple/component";
+import {MDCSlider} from "@material/slider/component";
+import {MDCSwitch} from "@material/switch/component";
 
 export default {
   name: 'GTDQueryCard',
+  components: {CardControl},
   props: {
+    name: {
+      type: String,
+      default: () => ''
+    },
     width: {
       type: String,
       default: () => '100%'
@@ -52,19 +132,27 @@ export default {
         return acc;
       }, []).sort()]
     },
-    years() {
-      const GTD_START_YEAR = 1970
-      const GTD_SPAN_YEARS = 27
-      return ['All', ...Array(GTD_SPAN_YEARS).fill().map((_, i) => GTD_START_YEAR + i)];
+    minYear() {
+      return 1970;
     },
+    maxYear() {
+      return 1997;
+    }
   },
   data() {
     return {
-      name: 'Global Fatal Incidents - 1970',
+      title: 'Global Fatal Incidents - 1970',
       country: 'All',
-      year: 1970,
+      startYear: 1970,
+      endYear: 1975,
       minCasualties: 1,
     }
+  },
+  mounted() {
+    const title = new MDCTextField(document.querySelector('.title'))
+    const years = new MDCSlider(document.querySelector('.year-slider'));
+    const onlyFatal = new MDCSwitch(document.querySelector('.fatal-switch'))
+    const query = new MDCRipple(document.querySelector('.query-btn'))
   },
   methods: {
     submit(e) {
@@ -74,9 +162,45 @@ export default {
   },
 }
 </script>
-<style>
-.mui-form {
-  text-align: left;
-  align-items: start;
+<style lang="scss">
+@use "~@material/floating-label/mdc-floating-label";
+@use "~@material/line-ripple/mdc-line-ripple";
+@use "~@material/notched-outline/mdc-notched-outline";
+@use "~@material/textfield";
+@use "~@material/button";
+@use "~@material/card";
+@use "~@material/slider/styles";
+@use "~@material/switch";
+
+@include button.core-styles;
+@include card.core-styles;
+@include switch.core-styles;
+@include textfield.core-styles;
+
+.margin-bottom {
+  margin-bottom: 15px;
+}
+.margin-right {
+  margin-right: 15px;
+}
+.mdc-text-field {
+  display: flex;
+}
+.year-labels {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 16px
+}
+.query-fatal-only {
+  display: flex;
+  justify-content: flex-start;
+  padding: 0 16px;
+}
+.query-btn {
+  display: block;
+  margin: auto;
+}
+.query-btn button {
+  border: 1px solid #999;
 }
 </style>

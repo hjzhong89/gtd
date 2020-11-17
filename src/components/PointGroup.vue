@@ -3,6 +3,7 @@
     <circle v-for="(circle, i) in circles"
             :key="i"
             v-bind="circle"
+            class="point"
     ></circle>
   </g>
 </template>

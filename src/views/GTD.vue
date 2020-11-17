@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1>{{ totalCasualties.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }} Casualties from Terrorism</h1>
+    <h1>{{ formatNumber(totalCasualties) }} Casualties from Terrorism</h1>
     <h4>({{ minYear }} to {{ maxYear }})</h4>
     <div id="gtd-content">
       <div id="side-panel" class="gtd-item">
@@ -247,6 +247,7 @@ export default {
       geometries.attr('stroke-width', 1 / this.k);
       d3.selectAll('.point-group')
         .attr('transform', e.transform)
+        .attr('r', 5 / this.k);
     },
     /**
      * Reset the map and incidents when a user "unfocuses" a country
@@ -279,7 +280,7 @@ export default {
           return {
             latitude: d.latitude,
             longitude: d.longitude,
-            r: 10,
+            r: 5,
             fill: d3.schemeTableau10[i],
             stroke: 'black',
             'stroke-width': '.5px',
@@ -291,6 +292,9 @@ export default {
         }
         this.pointGroups.push(group);
       });
+    },
+    formatNumber(f) {
+      return f    .toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
     },
   },
 };
@@ -313,10 +317,6 @@ export default {
   flex-direction: column;
 }
 
-#side-panel div {
-  margin: 6px;
-}
-
 .choropleth.canvas {
   background-color: #a1b6ec;
   overflow: hidden;
@@ -332,10 +332,7 @@ svg text {
   fill: black;
 }
 
-.resultcard .header {
-  color: white;
-  text-align: center;
-  font-size: 1.25em;
-
+.margin-bottom-small {
+  margin-bottom: 5px;
 }
 </style>

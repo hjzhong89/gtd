@@ -9,11 +9,20 @@
     "lint:fix": "vue-cli-service lint --fix"
   },
   "dependencies": {
+    "@material/button": "^8.0.0",
+    "@material/card": "^8.0.0",
+    "@material/icon-button": "^8.0.0",
+    "@material/ripple": "^8.0.0",
+    "@material/select": "^8.0.0",
+    "@material/slider": "^8.0.0",
+    "@material/switch": "^8.0.0",
+    "@material/textfield": "^8.0.0",
     "core-js": "^3.6.5",
     "d3": "^6.2.0",
     "d3-geo-projection": "^3.0.0",
     "d3-transition": "^2.0.0",
     "d3-zoom": "^2.0.0",
+    "sass": "^1.25.0",
     "topojson": "^3.0.2",
     "vue": "^2.6.11",
     "vue-class-component": "^7.2.3",
@@ -33,9 +42,12 @@
     "@vue/cli-service": "~4.5.0",
     "@vue/eslint-config-airbnb": "^5.0.2",
     "@vue/eslint-config-typescript": "^5.0.2",
+    "css-loader": "^5.0.1",
+    "dart-sass": "^1.25.0",
     "eslint": "^6.7.2",
     "eslint-plugin-import": "^2.20.2",
     "eslint-plugin-vue": "^6.2.2",
+    "sass-loader": "^10.1.0",
     "typescript": "~3.9.3",
     "vue-template-compiler": "^2.6.11"
   }
