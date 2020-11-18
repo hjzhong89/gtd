@@ -91,8 +91,8 @@
       </div>
 
       <div class="query-submit margin-bottom">
-        <div class="mdc-touch-target-wrapper query-btn" @click="submit">
-          <button class="query-btn mdc-button mdc-button--touch">
+        <div class="mdc-touch-target-wrapper">
+          <button class="query-btn mdc-button mdc-button--raised mdc-button--touch"  @click="submit">
             <div class="mdc-button__ripple"></div>
             <span class="mdc-button__label">Query</span>
             <div class="mdc-button__touch"></div>
