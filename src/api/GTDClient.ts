@@ -1,4 +1,4 @@
-const uri = process.env.API_URL ? process.env.API_URL : 'http://localhost:3000/api';
+const uri = 'http://localhost:3000/api';
 export type Incident = {
   eventid: number;
   iyear: number;

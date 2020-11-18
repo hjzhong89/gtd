@@ -3,15 +3,17 @@
                :width="width"
                :height="height">
     <form style="width: 100%" class="querycard form">
+      <div class="form-title">
+        <h4>Explore GTD</h4>
+      </div>
       <div class="query-title margin-bottom">
-        <label class="mdc-text-field mdc-text-field--filled title">
+        <label class="mdc-text-field mdc-text-field--filled title square-edge">
           <span class="mdc-text-field__ripple"></span>
           <input type="text"
                  class="mdc-text-field__input"
                  aria-labelledby="title-label"
                  name="title"
                  v-model="title"
-                 required
           >
           <span class="mdc-floating-label title-label">Title</span>
           <span class="mdc-line-ripple"></span>
@@ -206,5 +208,9 @@ export default {
 }
 .query-btn button {
   border: 1px solid #999;
+}
+
+.square-edge {
+  border-radius: 0;
 }
 </style>

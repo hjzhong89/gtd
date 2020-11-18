@@ -11,8 +11,7 @@
               <th class="mdc-data-table__header-cell header"
                   role="columnheader" scope="col"
                   :style="`background-color: ${color}; color: white;`"
-              >{{ name }}
-              </th>
+              >{{ title }}</th>
               <th class="mdc-data-table__header-cell"
                   role="columnheader" scope="col"
                   :style="`background-color: ${color}; color: white;`"
@@ -30,7 +29,7 @@
             </tr>
             <tr class="mdc-data-table__row">
               <td class="mdc-data-table__cell mdc-data-table__cell">Avg Casualt</td>
-              <td class="mdc-data-table__cell mdc-data-table__cell--numeric">{{ formatNumber(casualtyAvg) }}</td>
+              <td class="mdc-data-table__cell mdc-data-table__cell--numeric">{{ casualtyAvg.toFixed(2) }}</td>
             </tr>
             </tbody>
           </table>
@@ -54,41 +53,26 @@ export default {
       type: String,
       default: () => '300px'
     },
-    name: {
+    title: {
       type: String,
       default: () => 'Results',
-    },
-    countries: {
-      type: Object,
-      default: () => {
-      },
     },
     color: {
       type: String,
       default: () => '',
     },
-  },
-  computed: {
-    countryValues() {
-      return Object.values(this.countries);
+    totalIncidents: {
+      type: Number,
+      default: () => 0,
     },
-    totalIncidents() {
-      return this.countryValues.reduce((total, c) => {
-        return total + c.totalIncidents
-      }, 0)
+    totalCasualties: {
+      type: Number,
+      default: () => 0,
     },
-    totalCasualties() {
-      return this.countryValues.reduce((total, c) => {
-        return total + c.totalCasualties
-      }, 0);
+    casualtyAvg: {
+      type: Number,
+      default: () => 0,
     },
-    casualtyAvg() {
-      if(this.totalIncidents) {
-        return (this.totalCasualties / this.totalIncidents).toFixed(2)
-      } else {
-        return 0.00
-      }
-    }
   },
   methods: {
     formatNumber(num) {

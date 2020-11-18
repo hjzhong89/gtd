@@ -2,8 +2,8 @@
   <g class="point-group" :id="groupName">
     <circle v-for="(circle, i) in circles"
             :key="i"
-            v-bind="circle"
             class="point"
+            v-bind="circle"
     ></circle>
   </g>
 </template>
@@ -47,6 +47,7 @@ export default {
           ...p,
           cx,
           cy,
+
         }
       })
     },

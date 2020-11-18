@@ -3,7 +3,7 @@
     <path v-for="feature in features"
           :key="feature.id"
           :id="feature.id"
-          :name="feature.properties.name"
+          :data-name="feature.properties.name"
           fill="gray"
           class="path geometry"
           stroke-width=".5px"
