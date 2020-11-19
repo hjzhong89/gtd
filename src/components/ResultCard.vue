@@ -77,8 +77,8 @@ export default {
   methods: {
     formatNumber(num) {
       return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-    }
-  }
+    },
+  },
 }
 </script>
 <style lang="scss">

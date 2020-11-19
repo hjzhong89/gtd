@@ -71,7 +71,7 @@
           </div>
         </div>
         <div class="year-labels">
-          <label>{{minYear}}</label><label>{{maxYear}}</label>
+          <label>{{ minYear }}</label><label>{{ maxYear }}</label>
         </div>
       </div>
 
@@ -94,7 +94,7 @@
 
       <div class="query-submit margin-bottom">
         <div class="mdc-touch-target-wrapper">
-          <button class="query-btn mdc-button mdc-button--raised mdc-button--touch"  @click="submit">
+          <button class="query-btn mdc-button mdc-button--raised mdc-button--touch" @click="submit">
             <div class="mdc-button__ripple"></div>
             <span class="mdc-button__label">Query</span>
             <div class="mdc-button__touch"></div>
@@ -186,37 +186,41 @@ export default {
 .margin-bottom {
   margin-bottom: 15px;
 }
+
 .margin-right {
   margin-right: 15px;
 }
+
 .mdc-text-field {
   display: flex;
 }
+
 .year-labels {
   display: flex;
   justify-content: space-between;
   padding: 0 16px
 }
+
 .query-fatal-only {
   display: flex;
   justify-content: flex-start;
   padding: 0 16px;
 }
+
 .query-btn {
   display: block;
   margin: auto;
 }
+
 .query-btn button {
   border: 1px solid #999;
 }
+
 .form-title, .form-title h4 {
   background: #14342B;
   color: white;
   font-size: 2em;
+  font-weight: bolder;
   padding: 8px 0;
 }
-.square-edge {
-  border-radius: 0;
-}
-
 </style>
