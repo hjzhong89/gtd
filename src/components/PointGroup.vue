@@ -52,7 +52,8 @@ export default {
   methods: {
     onmouseover(e) {
       const point = d3.select(e.target);
-      point.attr('r', point.attr('r') * 1.5)
+      point
+        .attr('r', point.attr('r') * 2)
       this.$emit('mouseoverPoint', e.target);
       e.stopPropagation();
     },

@@ -4,7 +4,7 @@
                :height="height">
     <form style="width: 100%" class="querycard form">
       <div class="form-title">
-        <h4>Explore GTD</h4>
+        <span>Explore GTD</span>
       </div>
       <div class="query-title margin-bottom">
         <label class="mdc-text-field mdc-text-field--filled title square-edge">
@@ -209,8 +209,14 @@ export default {
 .query-btn button {
   border: 1px solid #999;
 }
-
+.form-title, .form-title h4 {
+  background: #14342B;
+  color: white;
+  font-size: 2em;
+  padding: 8px 0;
+}
 .square-edge {
   border-radius: 0;
 }
+
 </style>

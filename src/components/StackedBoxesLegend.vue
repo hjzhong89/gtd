@@ -102,7 +102,7 @@ export default {
 }
 .stacked-boxes-legend.title {
   font-weight: bold;
-  font-size: 1.5em;
+  font-size: 1em;
 }
 
 .stacked-boxes-legend.label {

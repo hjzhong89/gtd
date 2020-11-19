@@ -50,16 +50,18 @@
           ></StackedBoxesLegend>
         </svg>
       </div>
-      <IncidentCard v-if="focusIncidentId.length"
-                    :incident="incidents[focusIncidentId]"
-      ></IncidentCard>
+      <div id="right-panel" style="width: 300px;">
+        <IncidentCard v-if="focusIncidentId.length"
+                      :incident="incidents[focusIncidentId]"
+        ></IncidentCard>
+      </div>
     </div>
     <div class="spacer"></div>
   </div>
 </template>
 
 <script>
-import { GtdAPIClient as gtd } from '@/api/GTDClient';
+import {GtdAPIClient as gtd} from '@/api/GTDClient';
 import ChoroplethMap from '@/components/ChoroplethMap.vue';
 import worldCountries from '@/assets/world_countries.json';
 import StackedBoxesLegend from "@/components/StackedBoxesLegend";
@@ -94,7 +96,7 @@ const GTDProps = {
 
 export default {
   name: 'GTD',
-  components: { IncidentCard, PointGroup, ResultCard, QueryCard, StackedBoxesLegend, ChoroplethMap },
+  components: {IncidentCard, PointGroup, ResultCard, QueryCard, StackedBoxesLegend, ChoroplethMap},
   props: GTDProps,
   computed: {
     canvasWidth() {
@@ -125,11 +127,11 @@ export default {
         if (focused) {
           ids = ids.filter((id) => incidents[id].country_txt === focused)
         }
-        const points = ids.map(eventid => {
-          const incident = incidents[ eventid ]
+        const points = ids.map((eventid) => {
+          const incident = incidents[eventid]
           return {
             r: 6,
-            fill: d3.schemeTableau10[ i ],
+            fill: d3.schemeTableau10[i],
             stroke: 'black',
             'stroke-width': '.5px',
             'data-eventid': incident.eventid,
@@ -154,7 +156,7 @@ export default {
     this.totals = await gtd.getCountries();
     this.$refs.gtdMap.draw();
     const zoom = d3.zoom()
-                   .scaleExtent([ 1, 8 ])
+                   .scaleExtent([1, 8])
                    .on('zoom', this.onZoom);
     d3.select('svg').call(zoom)
   },
@@ -171,26 +173,26 @@ export default {
     };
   },
   methods: {
-    handleCreated({ geometries }) {
-      this.viewBox = [ [ 0, 0 ], [ this.canvasWidth, this.canvasHeight ] ]
-      this.colorize({ geometries });
+    handleCreated({geometries}) {
+      this.viewBox = [[0, 0], [this.canvasWidth, this.canvasHeight]]
+      this.colorize({geometries});
     }, // Colorize the choropleth map after rendering.
-    async handleClicked(e) {
+    handleClicked(e) {
       const country = d3.select(`#${e.target.id}`)
                         .attr('data-name')
-      if(!this.focused && country) {
+      if (!this.focused && country) {
         this.focused = country;
         this.zoom(e);
-      } else if(this.focused !== country) {
+      } else if (this.focused !== country) {
         this.reset();
       }
       e.stopPropagation();
     }, // onclick for country
-    colorize({ geometries }) {
+    colorize({geometries}) {
       const colorScale = d3.scalePow()
                            .exponent(this.exponent)
-                           .domain([ 0, this.mostCasualties ])
-                           .range([ 0, 1 ]);
+                           .domain([0, this.mostCasualties])
+                           .range([0, 1]);
 
       const transition = d3.transition()
                            .duration(1050)
@@ -200,25 +202,26 @@ export default {
       geometries
         .transition(transition)
         .attr('fill', function(e) {
-          const count = countries[ e.id ] ? countries[ e.id ].totalCasualties : 0;
+          const count = countries[e.id] ? countries[e.id].totalCasualties : 0;
           const val = colorScale(count);
           return d3.interpolateReds(val);
         });
     }, // Colorize map from totals
     zoom(e) {
       const features = worldCountries.features
-                                     .filter((f) => f.id === e.target.id || f.properties.name === e.target.name);
-      if(features.length < 1) {
+                                     .filter((f) => f.id === e.target.id
+                                                    || f.properties.name === e.target.name);
+      if (features.length < 1) {
         return;
       }
-      const feature = features[ 0 ];
+      const feature = features[0];
       const transition = d3.transition()
                            .duration(1000)
                            .ease(d3.easeLinear);
       const zoom = d3.zoom()
-                     .scaleExtent([ 1, 8 ])
+                     .scaleExtent([1, 8])
                      .on('zoom', this.onZoom);
-      const [ [ x0, y0 ], [ x1, y1 ] ] = this.$refs.gtdMap.path.bounds(feature);
+      const [[x0, y0], [x1, y1]] = this.$refs.gtdMap.path.bounds(feature);
       const canvas = d3.select('#gtd-canvas');
       const zoomFactor = Math.max((x1 - x0) / this.width, (y1 - y0) / this.height);
       const scaleFactor = Math.min(8, 0.9 / zoomFactor);
@@ -240,7 +243,7 @@ export default {
     }, // Determines where and how much to zoom then emits zoom event
     unzoom() {
       const zoom = d3.zoom()
-                     .scaleExtent([ 1, 8 ])
+                     .scaleExtent([1, 8])
                      .on('zoom', this.onZoom);
       const transition = d3.transition()
                            .duration(1000)
@@ -283,14 +286,15 @@ export default {
       const getIncidents = gtd.getIncidents(params)
       const {zoom, unzoom} = this;
 
-      Promise.all([ getCountries, getIncidents ]).then(([ countries, incidents ]) => {
+      Promise.all([getCountries, getIncidents]).then(([countries, incidents]) => {
         if (params.country) {
-          zoom({ target: { name: params.country } })
+          that.focused = params.country;
+          zoom({target: {name: params.country}})
         } else {
           unzoom();
         }
         incidents.forEach(i => {
-          that.incidents[ i.eventid ] = i
+          that.incidents[i.eventid] = i
         })
         const i = that.queries.length
         const stats = Object.values(countries).reduce((total, d) => {
@@ -298,11 +302,11 @@ export default {
           total.totalCasualties += d.totalCasualties;
           total.eventids.push(...d.incidents)
           return total;
-        }, { totalIncidents: 0, totalCasualties: 0, eventids: [] });
+        }, {totalIncidents: 0, totalCasualties: 0, eventids: []});
         stats.casualtyAvg = stats.totalCasualties / stats.totalIncidents;
         that.queries.push({
                             title: query.title,
-                            color: d3.schemeTableau10[ i ],
+                            color: d3.schemeTableau10[i],
                             ...params,
                             ...stats,
                           });
@@ -322,7 +326,7 @@ export default {
 #gtd-content {
   display: flex;
   flex-direction: row;
-  justify-content: flex-start;
+  justify-content: center;
   margin: 0 15px;
 }
 

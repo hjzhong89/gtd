@@ -12,7 +12,7 @@
                   role="columnheader" scope="col"
                   :style="`background-color: ${color}; color: white;`"
               >{{ title }}</th>
-              <th class="mdc-data-table__header-cell"
+              <th class="mdc-data-table__header-cell header"
                   role="columnheader" scope="col"
                   :style="`background-color: ${color}; color: white;`"
               ></th>
@@ -90,5 +90,6 @@ export default {
 .header {
   overflow: visible;
   text-overflow: unset;
+  border-spacing: 0;
 }
 </style>
