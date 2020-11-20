@@ -53,6 +53,7 @@
       <div id="right-panel" style="width: 300px;">
         <IncidentCard v-if="focusIncidentId.length"
                       :incident="incidents[focusIncidentId]"
+                      height="auto"
         ></IncidentCard>
       </div>
     </div>

@@ -47,11 +47,11 @@ export default {
   props: {
     width: {
       type: String,
-      default: () => '100%'
+      default: () => '100%',
     },
     height: {
       type: String,
-      default: () => '300px'
+      default: () => '300px',
     },
     title: {
       type: String,
