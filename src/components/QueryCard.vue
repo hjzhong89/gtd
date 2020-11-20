@@ -21,7 +21,7 @@
       </div>
 
       <div class="query-country margin-bottom">
-        <label>
+        <label style="display: flex; flex-direction: column; justify-content: space-between">
           Country
           <select v-model="country">
             <option v-for="(country, i) in countryNames" :key="i">{{ country }}</option>
