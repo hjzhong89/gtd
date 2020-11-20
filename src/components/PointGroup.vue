@@ -66,7 +66,4 @@ export default {
 }
 </script>
 <style lang="scss">
-.point {
-  cursor: pointer;
-}
 </style>

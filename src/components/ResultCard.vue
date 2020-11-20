@@ -28,7 +28,7 @@
               <td class="mdc-data-table__cell mdc-data-table__cell--numeric">{{ formatNumber(totalCasualties) }}</td>
             </tr>
             <tr class="mdc-data-table__row">
-              <td class="mdc-data-table__cell mdc-data-table__cell">Avg Casualt</td>
+              <td class="mdc-data-table__cell mdc-data-table__cell">Avg Casualties</td>
               <td class="mdc-data-table__cell mdc-data-table__cell--numeric">{{ casualtyAvg.toFixed(2) }}</td>
             </tr>
             </tbody>

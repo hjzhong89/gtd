@@ -3,58 +3,68 @@
     <h1>{{ formatNumber(totalCasualties) }} Casualties from Terrorism</h1>
     <h4>({{ minYear }} to {{ maxYear }})</h4>
     <div id="gtd-content">
-      <div id="left-panel" class="gtd-item">
-        <QueryCard class="margin-bottom-small"
-                   name="querycard"
-                   @querySubmit="querySubmit"></QueryCard>
-        <ResultCard v-for="(query, i) in queries"
-                    :key="i"
-                    v-bind="query"></ResultCard>
+      <div class="gtd-row incident-container">
+<!--        <div class="incident-placeholder" v-if="!focusIncidentId.length">-->
+<!--          <em>Query for incidents below and then mouse over a point to see details.</em>-->
+<!--        </div>-->
       </div>
-      <div id="map-panel" class="gtd-item">
-        <svg
-          :height="canvasHeight"
-          :width="canvasWidth"
-          class="gtd choropleth canvas"
-          id="gtd-canvas"
-          @click="reset"
-        >
-          <ChoroplethMap id="gtd-map"
-                         :features="features"
-                         :canvas-width="width"
-                         :canvas-height="height"
-                         :x="margin.left"
-                         :y="margin.top"
-                         @created="handleCreated"
-                         @clicked="handleClicked"
-                         ref="gtdMap"
-          >
-          </ChoroplethMap>
-          <PointGroup v-for="(group, i) in pointGroups"
-                      v-bind="group"
+      <div class="gtd-row">
+        <div id="left-panel" class="gtd-item">
+          <QueryCard class="margin-bottom-small"
+                     name="querycard"
+                     @querySubmit="querySubmit"></QueryCard>
+          <ResultCard v-for="(query, i) in queries"
                       :key="i"
-                      :canvas-width="width"
-                      :canvas-height="height"
-                      :margin="margin"
-                      @mouseoverPoint="mouseoverPoint"
-          ></PointGroup>
-          <StackedBoxesLegend v-if="!focused"
-                              :x="margin.left"
-                              :y="(canvasHeight / 2) + margin.top"
-                              :height="canvasHeight / 2.5"
-                              :width="100"
-                              :exponent="exponent"
-                              :min="0"
-                              :max="mostCasualties"
-                              title="Total Casualties"
-          ></StackedBoxesLegend>
-        </svg>
-      </div>
-      <div id="right-panel" style="width: 300px;">
-        <IncidentCard v-if="focusIncidentId.length"
-                      :incident="incidents[focusIncidentId]"
-                      height="auto"
-        ></IncidentCard>
+                      v-bind="query"></ResultCard>
+        </div>
+        <div id="map-panel" class="gtd-item">
+          <svg
+            :height="canvasHeight"
+            :width="canvasWidth"
+            class="gtd choropleth canvas"
+            id="gtd-canvas"
+            @click="reset"
+          >
+            <ChoroplethMap id="gtd-map"
+                           :features="features"
+                           :canvas-width="width"
+                           :canvas-height="height"
+                           :x="margin.left"
+                           :y="margin.top"
+                           @created="handleCreated"
+                           @clicked="handleClicked"
+                           ref="gtdMap"
+            >
+            </ChoroplethMap>
+            <PointGroup v-for="(group, i) in pointGroups"
+                        v-bind="group"
+                        :key="i"
+                        :canvas-width="width"
+                        :canvas-height="height"
+                        :margin="margin"
+                        @mouseoverPoint="mouseoverPoint"
+            ></PointGroup>
+            <StackedBoxesLegend v-if="!focused"
+                                :x="margin.left"
+                                :y="(canvasHeight / 2) + margin.top"
+                                :height="canvasHeight / 2.5"
+                                :width="100"
+                                :exponent="exponent"
+                                :min="0"
+                                :max="mostCasualties"
+                                title="Total Casualties"
+            ></StackedBoxesLegend>
+          </svg>
+          <transition name="slide-up">
+            <IncidentCard id="gtd-incident"
+                          v-if="focusIncidentId.length"
+                          :incident="incidents[focusIncidentId]"
+                          height="200px"
+                          width="890px"
+                          @dismiss="dismiss"
+            ></IncidentCard>
+          </transition>
+        </div>
       </div>
     </div>
     <div class="spacer"></div>
@@ -152,8 +162,8 @@ export default {
     topFive() {
       if (this.focused && this.incidents.length > 0) {
         return this.incidents
-                   .filter(i => i.country_txt === this.focused)
-                   .slice(0, 5)
+          .filter(i => i.country_txt === this.focused)
+          .slice(0, 5)
       }
       return []
     },
@@ -166,8 +176,8 @@ export default {
     this.totals = await gtd.getCountries();
     this.$refs.gtdMap.draw();
     const zoom = d3.zoom()
-                   .scaleExtent([1, 8])
-                   .on('zoom', this.onZoom);
+      .scaleExtent([1, 8])
+      .on('zoom', this.onZoom);
     d3.select('svg').call(zoom)
   },
   data() {
@@ -189,7 +199,7 @@ export default {
     }, // Colorize the choropleth map after rendering.
     handleClicked(e) {
       const country = d3.select(`#${e.target.id}`)
-                        .attr('data-name')
+        .attr('data-name')
       if (!this.focused && country) {
         this.focused = country;
         this.zoom(e);
@@ -200,18 +210,18 @@ export default {
     }, // onclick for country
     colorize({geometries}) {
       const colorScale = d3.scalePow()
-                           .exponent(this.exponent)
-                           .domain([0, this.mostCasualties])
-                           .range([0, 1]);
+        .exponent(this.exponent)
+        .domain([0, this.mostCasualties])
+        .range([0, 1]);
 
       const transition = d3.transition()
-                           .duration(1050)
-                           .ease(d3.easeLinear);
+        .duration(1050)
+        .ease(d3.easeLinear);
 
       const countries = this.totals;
       geometries
         .transition(transition)
-        .attr('fill', function(e) {
+        .attr('fill', function (e) {
           const count = countries[e.id] ? countries[e.id].totalCasualties : 0;
           const val = colorScale(count);
           return d3.interpolateReds(val);
@@ -219,18 +229,18 @@ export default {
     }, // Colorize map from totals
     zoom(e) {
       const features = worldCountries.features
-                                     .filter((f) => f.id === e.target.id
-                                                    || f.properties.name === e.target.name);
+        .filter((f) => f.id === e.target.id
+          || f.properties.name === e.target.name);
       if (features.length < 1) {
         return;
       }
       const feature = features[0];
       const transition = d3.transition()
-                           .duration(1000)
-                           .ease(d3.easeLinear);
+        .duration(1000)
+        .ease(d3.easeLinear);
       const zoom = d3.zoom()
-                     .scaleExtent([1, 8])
-                     .on('zoom', this.onZoom);
+        .scaleExtent([1, 8])
+        .on('zoom', this.onZoom);
       const [[x0, y0], [x1, y1]] = this.$refs.gtdMap.path.bounds(feature);
       const canvas = d3.select('#gtd-canvas');
       const zoomFactor = Math.max((x1 - x0) / this.width, (y1 - y0) / this.height);
@@ -239,34 +249,34 @@ export default {
       const yPrime = (y0 + y1) / -2;
 
       canvas.transition(transition)
-            .call(zoom.transform,
-                  d3.zoomIdentity.translate(this.width / 2, this.height / 2)
-                    .scale(scaleFactor)
-                    .translate(xPrime, yPrime))
-            .call((t, id) => {
-              d3.selectAll(`.path.geometry:not([id=${id}])`)
-                .transition(t)
-                .style('opacity', 0.1);
-            }, feature.id)
+        .call(zoom.transform,
+          d3.zoomIdentity.translate(this.width / 2, this.height / 2)
+            .scale(scaleFactor)
+            .translate(xPrime, yPrime))
+        .call((t, id) => {
+          d3.selectAll(`.path.geometry:not([id=${id}])`)
+            .transition(t)
+            .style('opacity', 0.1);
+        }, feature.id)
 
 
     }, // Determines where and how much to zoom then emits zoom event
     unzoom() {
       const zoom = d3.zoom()
-                     .scaleExtent([1, 8])
-                     .on('zoom', this.onZoom);
+        .scaleExtent([1, 8])
+        .on('zoom', this.onZoom);
       const transition = d3.transition()
-                           .duration(1000)
-                           .ease(d3.easeLinear);
+        .duration(1000)
+        .ease(d3.easeLinear);
       const canvas = d3.select('#gtd-canvas');
 
       canvas.transition(transition)
-            .call(zoom.transform, d3.zoomIdentity)
-            .call((t) => {
-              d3.selectAll('.path.geometry')
-                .transition(t)
-                .style('opacity', '100%');
-            });
+        .call(zoom.transform, d3.zoomIdentity)
+        .call((t) => {
+          d3.selectAll('.path.geometry')
+            .transition(t)
+            .style('opacity', '100%');
+        });
     }, // Emits zoom event for "unzooming"
     onZoom(e) {
       this.k = e.transform.k
@@ -315,11 +325,11 @@ export default {
         }, {totalIncidents: 0, totalCasualties: 0, eventids: []});
         stats.casualtyAvg = stats.totalCasualties / stats.totalIncidents;
         that.queries.push({
-                            title: query.title,
-                            color: d3.schemeTableau10[i],
-                            ...params,
-                            ...stats,
-                          });
+          title: query.title,
+          color: d3.schemeTableau10[i],
+          ...params,
+          ...stats,
+        });
       })
     }, // Handle users GTD query
     formatNumber(f) {
@@ -327,21 +337,50 @@ export default {
     }, // Formats a number for commas
     mouseoverPoint(target) {
       this.focusIncidentId = d3.select(target).attr('data-eventid');
-    },
+    }, // Show the incident details when a user mouses over
+    dismiss() {
+      this.focusIncidentId = '';
+    }, // Dismiss incident details
   },
 }
 ;
 </script>
 <style>
+html, body {
+  width: 100%;
+}
+
 #gtd-content {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   justify-content: center;
   margin: 0 15px;
 }
 
+.gtd-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  margin: 15px 0;
+}
+
 .gtd-item {
   margin: 0 10px
+}
+
+.incident-placeholder {
+  height: 200px;
+  width: 1200px;
+  background: #000;
+  opacity: .87;
+  color: #ddd;
+  border-radius: 15px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5em;
 }
 
 #left-panel {
@@ -350,22 +389,42 @@ export default {
   display: flex;
   flex-direction: column;
 }
+#map-panel {
+  position: relative;
+  overflow: hidden;
+  width: 900px;
+  height: 700px;
+}
+#gtd-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+#gtd-incident {
+  position: absolute;
+  top: 10px;
+  left: 5px;
+}
+.slide-up-enter-active, .slide-up-leave-active {
+  transition: 1s;
+}
+.slide-up-enter, .slide-up-leave-to {
+  transform: translate(0, -250px);
+}
 
 .choropleth.canvas {
   background-color: #a1b6ec;
   overflow: hidden;
   border-radius: 15px;
 }
+svg text {
+  fill: black;
+}
 
 .spacer {
   width: 100%;
   height: 25px;
 }
-
-svg text {
-  fill: black;
-}
-
 .margin-bottom-small {
   margin-bottom: 5px;
 }
