@@ -12,6 +12,8 @@
         <div id="left-panel" class="gtd-item">
           <QueryCard class="margin-bottom-small"
                      name="querycard"
+                     :min-year="minYear"
+                     :max-year="maxYear"
                      @querySubmit="querySubmit"></QueryCard>
           <ResultCard v-for="(query, i) in queries"
                       :key="i"
@@ -130,7 +132,7 @@ export default {
       return 1970
     }, // Earliest year of incidents in GTD
     maxYear() {
-      return 1997
+      return 2018
     }, // Latest year of incidents in GTD
     pointGroups() {
       const {incidents, focused} = this;
@@ -168,17 +170,20 @@ export default {
       return []
     },
   },
-  async created() {
+  created() {
     this.center = {
       x: this.width / 2,
       y: this.height / 2,
     }
-    this.totals = await gtd.getCountries();
-    this.$refs.gtdMap.draw();
-    const zoom = d3.zoom()
-      .scaleExtent([1, 8])
-      .on('zoom', this.onZoom);
-    d3.select('svg').call(zoom)
+    gtd.getCountries().then(totals => {
+      this.totals = totals;
+      this.$refs.gtdMap.draw();
+      const zoom = d3.zoom()
+        .scaleExtent([1, 8])
+        .on('zoom', this.onZoom);
+      d3.select('svg').call(zoom)
+    });
+
   },
   data() {
     return {

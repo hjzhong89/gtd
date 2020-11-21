@@ -128,6 +128,14 @@ export default {
       type: String,
       default: () => '300px'
     },
+    minYear: {
+      type: Number,
+      default: () => 1970,
+    },
+    maxYear: {
+      type: Number,
+      default: () => 2018,
+    },
   },
   computed: {
     countryNames() {
@@ -136,12 +144,6 @@ export default {
         return acc;
       }, []).sort()]
     },
-    minYear() {
-      return 1970;
-    },
-    maxYear() {
-      return 1997;
-    }
   },
   data() {
     return {
