@@ -3,7 +3,7 @@
     <div class="resultcard"
          :width="width"
          :height="height">
-      <div class="mdc-data-table .results-table" :style="`width: ${width}`">
+      <div class="mdc-data-table results-table" :style="`width: ${width}`">
         <div class="mdc-data-table__table-container" :style="`width: ${width}`">
           <table class="mdc-data-table__table" aria-label="Incident Statistics" :style="`width: ${width}`">
             <thead>

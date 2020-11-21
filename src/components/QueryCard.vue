@@ -3,9 +3,6 @@
                :width="width"
                :height="height">
     <form style="width: 100%" class="querycard form">
-      <div class="form-title">
-        <span>Explore GTD</span>
-      </div>
       <div class="query-title margin-bottom">
         <label class="mdc-text-field mdc-text-field--filled title square-edge">
           <span class="mdc-text-field__ripple"></span>
