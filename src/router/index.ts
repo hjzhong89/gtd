@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import VueRouter, { RouteConfig } from 'vue-router';
 import GTD from '../views/GTD.vue';
+import Bloom from '../views/Bloom.vue';
 
 Vue.use(VueRouter);
 
@@ -13,6 +14,12 @@ const routes: Array<RouteConfig> = [
       height: 600,
       width: 800,
     },
+  },
+  {
+    path: '/bloom',
+    name: 'Bloom',
+    component: Bloom,
+    props: {}
   },
 ];
 

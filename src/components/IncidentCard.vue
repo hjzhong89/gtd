@@ -115,8 +115,11 @@
     <div class="incidentcard section footer" v-if="tip">
       <div>
         <p>
-          Predicted values are derived from an ElasticNet Linear Regressor that identified 7 features
-          as the best indicators for estimating the number of casualties in a given incident.
+          Predicted values are derived from an ElasticNet Linear Regressor. Of the 135 columns in
+          the original Global Terrorism Database, 7 features were identified as the best indicators
+          for estimating the number of casualties in a given incident.
+        </p>
+        <p>
           Incidents with a value of "N/A" were used in the training set and excluded from the test
           set.
         </p>

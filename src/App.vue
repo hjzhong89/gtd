@@ -1,12 +1,8 @@
 <template>
   <div id="app">
     <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <a href="https://bloom.neo4j.io/index.html?connectURL=bolt%2Brouting%3A//0467f778.databases.neo4j.io"
-         target="_blank"
-      >
-        Neo4J Bloom
-      </a>
+      <router-link to="/">Explorer</router-link> |
+      <router-link to="/bloom">Bloom</router-link>
     </div>
     <router-view/>
   </div>
