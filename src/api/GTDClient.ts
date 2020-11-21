@@ -1,4 +1,4 @@
-const uri = 'http://localhost:3000/api';
+const uri = 'http://ec2-13-58-123-188.us-east-2.compute.amazonaws.com:3000/api';
 export type Incident = {
   eventid: number;
   iyear: number;
