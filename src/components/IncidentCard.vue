@@ -95,7 +95,7 @@
         <div class="incidentcard data">
           <span class="label">Predicted Casualties</span>
           <span class="value" style="font-size: 1.5em; font-weight: bold">
-            {{ incident.label ? incident.label : 'N/A' }}
+            {{ predictions[incident.eventid] ? predictions[incident.eventid] : 'N/A' }}
           </span>
         </div>
       </div>
@@ -103,6 +103,8 @@
   </div>
 </template>
 <script>
+import predictions from '@/assets/pred.json';
+
 export default {
   name: 'IncidentCard',
   props: {
@@ -140,6 +142,11 @@ export default {
       const date = this.incident.iday.toString().padStart(2, '0');
       return `${year}–${month}-${date}`
     },
+  },
+  data() {
+    return {
+      predictions,
+    }
   },
   methods: {
     formatNumber(f) {

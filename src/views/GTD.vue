@@ -185,7 +185,6 @@ export default {
         .on('zoom', this.onZoom);
       d3.select('svg').call(zoom)
     });
-
   },
   data() {
     return {
@@ -197,7 +196,7 @@ export default {
       showQuery: true, /** Unused **/
       incidents: {},
       queries: [],
-      maxResults: 25,
+      maxResults: 50,
     };
   },
   methods: {

@@ -1,4 +1,4 @@
-const uri = 'http://ec2-13-58-123-188.us-east-2.compute.amazonaws.com:3000/api';
+const uri = 'http://localhost:3000/api';
 export type Incident = {
   eventid: number;
   iyear: number;
@@ -32,6 +32,8 @@ export default interface GTDClient {
   getCountries(opts: GetOptions): Promise<Map<string, GetCountryRecord>>;
 
   getIncidents(opts: GetOptions): Promise<any>;
+
+  getPrediction(eventid: string): Promise<number>;
 }
 
 const getQueryString = (opts: GetOptions) => {
@@ -76,4 +78,15 @@ export const GtdAPIClient: GTDClient = {
     });
     return response.json();
   },
+  async getPrediction(eventid: string): Promise<number> {
+    const url = `${uri}/api/prediction?eventid=${eventid}`;
+    const response = await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
+    return response.json();
+  }
 };
