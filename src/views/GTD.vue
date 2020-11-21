@@ -68,6 +68,7 @@
         </div>
       </div>
     </div>
+    <div id="max-results-text">Only showing top {{maxResults}} incidents per query</div>
     <div class="spacer"></div>
   </div>
 </template>

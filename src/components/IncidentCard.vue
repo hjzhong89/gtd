@@ -13,9 +13,7 @@
     </div>
 
     <hr class="incidentcard divider">
-
     <div class="incidentcard section body">
-
       <div class="incidentcard data-group">
         <div class="incidentcard data">
           <span class="label">Perpetrator</span>
@@ -26,7 +24,6 @@
           <span class="value">{{ incident.target1 ? incident.target1 : 'Unknown' }}</span>
         </div>
       </div>
-
       <div class="incidentcard data-group">
         <div class="incidentcard data">
           <span class="label">Wounded</span>
@@ -93,18 +90,73 @@
         </span>
         </div>
         <div class="incidentcard data">
-          <span class="label">Predicted Casualties</span>
+          <span class="label" style="display: inline-flex; flex-direction: row; align-items: center">
+            <i v-if="!tip"
+               class="fas fa-info-circle"
+               style="margin-right: 2px; color: dodgerblue; cursor: pointer"
+               @click="showTip"
+            >
+            </i>
+            <i v-if="tip"
+               class="fas fa-times-circle"
+               style="margin-right: 2px; color: dodgerblue; cursor: pointer"
+               @click="showTip"
+            ></i>
+            Predicted Casualties
+          </span>
           <span class="value" style="font-size: 1.5em; font-weight: bold">
             {{ predictions[incident.eventid] ? predictions[incident.eventid] : 'N/A' }}
           </span>
         </div>
       </div>
     </div>
+
+    <hr class="incidentcard divider" v-if="tip">
+    <div class="incidentcard section footer" v-if="tip">
+      <div>
+        <p>
+          Predicted values are derived from an ElasticNet Linear Regressor that identified 7 features
+          as the best indicators for estimating the number of casualties in a given incident.
+          Incidents with a value of "N/A" were used in the training set and excluded from the test
+          set.
+        </p>
+        <span style="font-weight: bold; font-size: 1.2em">Model Features</span>
+        <ol>
+          <li>Number of People wounded from the incident</li>
+          <li>Whether or not the attack was a suicide attack</li>
+          <li>Whether or not the attack was successful</li>
+          <li>The primary attack weapon/methodology</li>
+          <li>The primary subcategory of the attack weapon/methodology</li>
+          <li>Whether or not hostages were involved in the situation</li>
+          <li>Whether or not the incident met all criteria to be widely considered terrorism</li>
+        </ol>
+        <p>
+          See the
+          <a href="https://www.start.umd.edu/gtd/downloads/Codebook.pdf">
+            Global Terrorism Database Codebook
+          </a> for details about each feature.
+        </p>
+      </div>
+    </div>
+    <div class="spacer"></div>
   </div>
 </template>
 <script>
 import predictions from '@/assets/pred.json';
-
+const months = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December"
+]
 export default {
   name: 'IncidentCard',
   props: {
@@ -138,23 +190,27 @@ export default {
   computed: {
     incidentDate() {
       const year = this.incident.iyear.toString();
-      const month = this.incident.imonth.toString().padStart(2, '0');
+      const month = months[this.incident.imonth - 1];
       const date = this.incident.iday.toString().padStart(2, '0');
-      return `${year}–${month}-${date}`
+      return `${month} ${date}, ${year}`
     },
   },
   data() {
     return {
+      tip: false,
       predictions,
     }
   },
   methods: {
+    dismiss() {
+      this.$emit('dismiss');
+    },
     formatNumber(f) {
       return f.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
     }, // Formats a number for commas
-    dismiss() {
-      this.$emit('dismiss');
-    }
+    showTip() {
+      this.tip = !this.tip;
+    },
   },
 };
 </script>
@@ -192,6 +248,7 @@ export default {
   color: #333;
   cursor: pointer;
 }
+
 .incidentcard.divider {
   border-top: 0.25px solid #ddd;
   margin: 5px 0;
